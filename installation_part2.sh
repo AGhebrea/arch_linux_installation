@@ -9,8 +9,6 @@ LOG_FILE="${LOG_FILE}.log"
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
 
-log_error "MODE: ${MODE}, DISK: ${DISK}"
-
 # Sourcing log functions
 if ! source log_functions.sh; then
     echo "Error! Could not source log_functions.sh"
@@ -108,11 +106,11 @@ function set_user() {
 # Installing grub and creating configuration
 function grub_configuration() {
     log_info "Installing and configuring grub"
-	if [[ "${MODE}" == "UEFI" ]]; then
+	if [[ "${MODE}" = "UEFI" ]]; then
         pacman --noconfirm --sync grub efibootmgr
         grub-install --target=x86_64-efi --efi-directory=/boot
 		grub-mkconfig --output=/boot/grub/grub.cfg
-	elif [[ "${MODE}" == "BIOS" ]]; then
+	elif [[ "${MODE}" = "BIOS" ]]; then
         pacman --noconfirm --sync grub
 		grub-install /dev/"${DISK}"
 		grub-mkconfig --output=/boot/grub/grub.cfg
