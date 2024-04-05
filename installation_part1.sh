@@ -190,7 +190,7 @@ function enter_environment() {
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    arch-chroot /mnt 'MODE="${MODE}"; DISK="${DISK}"; ./installation_part2.sh "${MODE}" "${DISK}"'
+    arch-chroot /mnt "/installation_part2.sh ${MODE} ${DISK}"
 }
 
 # MAIN
