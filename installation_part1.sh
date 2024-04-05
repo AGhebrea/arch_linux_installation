@@ -2,15 +2,12 @@
 
 LOG_FILE="$(basename "${0}")"
 LOG_FILE="${LOG_FILE}.log"
-PROGS_GIT="https://raw.githubusercontent.com/arghpy/arch_install/main/packages.csv"
 
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
-if source ./log_functions.sh; then
-    log_info "Sourced log_functions.sh"
-else
+if ! source ./log_functions.sh; then
     echo "Error! Could not source log_functions.sh"
     exit 1
 fi
@@ -40,7 +37,7 @@ function configuring_pacman(){
     log_ok "DONE"
 
     log_info "Installing the keyring"
-	pacman --noconfirm --sync --refresh archlinux-keyring
+	pacman --noconfirm --sync --refresh archlinux-keyring || log_error "Aborting..."
     log_ok "DONE"
 }
 
@@ -48,12 +45,20 @@ function configuring_pacman(){
 function disks() {
     log_info "Select installation disk"
 
-    DISK="$(lsblk --nodeps --noheadings --exclude 7 --output NAME)"
-    NUMBER_OF_DISKS="$(echo "${DISK}" | wc -l )"
-    
-    if [[ ${NUMBER_OF_DISKS} -gt 1 ]]; then
-        # TODO: pass the disk as an argument in case there are multiple
-        log_error "Too many disks ${DISK}. Pass the disk with..."
+    DISK="$(lsblk --bytes --nodeps --noheadings --exclude 7 | sort --numeric-sort --key=5 --reverse | awk '{print $1; exit}')"
+    ANSWER=""
+
+    log_warning "From this point there is no going back! Proceed with caution."
+    log_info "Disk chosen: ${DISK}"
+
+    while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
+        printf "Select disk for installation (yes/no): "
+        read -r ANSWER
+    done
+
+    if [[ "${ANSWER}" == 'no' ]]; then
+        # TODO: create arguments for this script
+        log_error "Please pass the desired disk with the argument..."
     fi
 
     log_ok "DONE"
@@ -64,9 +69,7 @@ function partitioning() {
     log_info "Partitioning disk"
     log_info "Wiping the data on disk ${DISK}"
 
-    if ! wipefs --all "${DISK}"; then
-        log_error "Could not wipe disk ${DISK}. Aborting..."
-    fi
+    wipefs --all "/dev/${DISK}" || log_error "Could not wipe disk ${DISK}. Aborting..."
 
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
@@ -119,7 +122,7 @@ function formatting() {
     if [[ "${MODE}" == "UEFI" ]]; then
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
         # Fat32 filesystem
-        mkfs.vfat -F32 /dev/"${BOOT_P}"
+        mkfs.vfat -F32 "${BOOT_P}"
 
         SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
@@ -130,10 +133,7 @@ function formatting() {
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
-    mkswap /dev/"${SWAP_P}"
-    swapon /dev/"${SWAP_P}"
-    mkfs.ext4 -F /dev/"${HOME_P}"
-    mkfs.ext4 -F /dev/"${ROOT_P}"
+    mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}" || log_error "Aborting..."
 
     log_ok "DONE"
 }
@@ -143,14 +143,14 @@ function mounting() {
     log_info "Mounting partitions"
 
     mkdir --parents /mnt
-    mount /dev/"${ROOT_P}" /mnt
+    mount "${ROOT_P}" /mnt
 
     mkdir --parents /mnt/home
-    mount /dev/"${HOME_P}" /mnt/home
+    mount "${HOME_P}" /mnt/home
 
     [[ "${MODE}" == "UEFI" ]] && \
         mkdir --parents /mnt/boot && \
-        mount /dev/"${BOOT_P}" /mnt/boot
+        mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
 }
@@ -179,16 +179,16 @@ function enter_environment() {
     log_info "Copying the second installation part to new environment"
 
     chmod +x installation_part2.sh
-    cp installation_part2.sh /mnt
+    cp -a installation_part2.sh /mnt
+    cp -a log_functions.sh /mnt
 
     log_ok "DONE"
 
     log_info "Entering the new environment"
-    log_info "Run the second part of the script: './installation_part2.sh ${MODE} ${DISK}'"
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    arch-chroot /mnt 'MODE="${MODE}"; DISK="${DISK}"; ./installation_part2.sh "${MODE}" "${DISK}"'
+    arch-chroot /mnt /bin/bash "/installation_part2.sh" "'${MODE}'" "'${DISK}'"
 }
 
 # MAIN
@@ -202,6 +202,10 @@ function main() {
 	install_packages
     generate_fstab
     enter_environment
+
+    log_info "Rebooting..."
+    sleep 3
+    reboot
 }
 
 main

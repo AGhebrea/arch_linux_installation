@@ -10,16 +10,9 @@ LOG_FILE="${LOG_FILE}.log"
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
 
 # Sourcing log functions
-if source log_functions.sh; then
-    log_info "sourced log_functions.sh"
-else
+if ! source log_functions.sh; then
     echo "Error! Could not source log_functions.sh"
     exit 1
-fi
-
-# Checking the argument MODE
-if [[ "${MODE}" == "BIOS" || "${MODE}" != "UEFI" ]]; then
-    log_error "Check the first argument! ${MODE} was provided"
 fi
 
 # Initializing keys and setting pacman
@@ -146,8 +139,6 @@ function main(){
     enable_services
 
     log_ok "DONE"
-    log_info "Exit the chroot now 'exit' and reboot"
-    log_warning "Don't forget to take out the installation media"
     exec 1>&3 2>&4
 }
 
