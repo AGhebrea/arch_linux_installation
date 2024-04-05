@@ -71,7 +71,7 @@ function partitioning() {
     log_info "Partitioning disk"
     log_info "Wiping the data on disk ${DISK}"
 
-    if ! wipefs --all "${DISK}"; then
+    if ! wipefs --all "/dev/${DISK}"; then
         log_error "Could not wipe disk ${DISK}. Aborting..."
     fi
 
