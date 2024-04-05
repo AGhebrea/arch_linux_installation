@@ -15,6 +15,10 @@ if ! source log_functions.sh; then
     exit 1
 fi
 
+if [  -z "${MODE}" ] || [ -z "${DISK}" ]; then
+    log_error "Variables are not set. MODE: ${MODE}, DISK: ${DISK}"
+fi
+
 # Initializing keys and setting pacman
 function configuring_pacman(){
     log_info "Configuring pacman"
@@ -102,11 +106,11 @@ function set_user() {
 # Installing grub and creating configuration
 function grub_configuration() {
     log_info "Installing and configuring grub"
-	if [[ "${MODE}" == "UEFI" ]]; then
+	if [[ "${MODE}" = "UEFI" ]]; then
         pacman --noconfirm --sync grub efibootmgr
         grub-install --target=x86_64-efi --efi-directory=/boot
 		grub-mkconfig --output=/boot/grub/grub.cfg
-	elif [[ "${MODE}" == "BIOS" ]]; then
+	elif [[ "${MODE}" = "BIOS" ]]; then
         pacman --noconfirm --sync grub
 		grub-install /dev/"${DISK}"
 		grub-mkconfig --output=/boot/grub/grub.cfg
