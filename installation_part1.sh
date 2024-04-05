@@ -47,19 +47,19 @@ function configuring_pacman(){
 function disks() {
     log_info "Select installation disk"
 
-    DISK="$(lsblk --nodeps --noheadings --exclude 7 | sort -nk5 | awk '{print $1; exit}')"
+    DISK="$(lsblk --bytes --nodeps --noheadings --exclude 7 | sort --numeric-sort --key=5 --reverse | awk '{print $1; exit}')"
     ANSWER=""
 
     log_warning "From this point there is no going back! Proceed with caution."
     log_info "Disk chosen: ${DISK}"
 
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
-        printf "Select disk for installation: "
+        printf "Select disk for installation (yes/no): "
         read -r ANSWER
     done
 
     if [[ "${ANSWER}" == 'no' ]]; then
-        # TODO: create arguments to this script
+        # TODO: create arguments for this script
         log_error "Please pass the desired disk with the argument..."
     fi
 
