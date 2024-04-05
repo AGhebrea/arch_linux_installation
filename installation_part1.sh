@@ -50,7 +50,9 @@ function disks() {
     DISK="$(lsblk --nodeps --noheadings --exclude 7 | sort -nk5 | awk '{print $1; exit}')"
     ANSWER=""
 
+    log_warning "From this point there is no going back! Proceed with caution."
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
+        printf "Select disk for installation: "
         read -r ANSWER
     done
 
