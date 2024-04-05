@@ -17,11 +17,6 @@ else
     exit 1
 fi
 
-# Checking the argument MODE
-if [[ "${MODE}" == "BIOS" || "${MODE}" != "UEFI" ]]; then
-    log_error "Check the first argument! ${MODE} was provided"
-fi
-
 # Initializing keys and setting pacman
 function configuring_pacman(){
     log_info "Configuring pacman"
