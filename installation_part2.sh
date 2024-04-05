@@ -139,8 +139,6 @@ function main(){
     enable_services
 
     log_ok "DONE"
-    log_info "Exit the chroot now 'exit' and reboot"
-    log_warning "Don't forget to take out the installation media"
     exec 1>&3 2>&4
 }
 

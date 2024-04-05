@@ -204,7 +204,7 @@ function main() {
     enter_environment
 
     log_info "Rebooting..."
-    sleep 1
+    sleep 3
     reboot
 }
 
