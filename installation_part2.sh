@@ -15,6 +15,10 @@ if ! source log_functions.sh; then
     exit 1
 fi
 
+if [  -z "${MODE}" ] || [ -z "${DISK}" ]; then
+    log_error "Variables are not set. MODE: ${MODE}, DISK: ${DISK}"
+fi
+
 # Initializing keys and setting pacman
 function configuring_pacman(){
     log_info "Configuring pacman"
