@@ -2,7 +2,6 @@
 
 LOG_FILE="$(basename "${0}")"
 LOG_FILE="${LOG_FILE}.log"
-PROGS_GIT="https://raw.githubusercontent.com/arghpy/arch_install/main/packages.csv"
 
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
@@ -48,12 +47,16 @@ function configuring_pacman(){
 function disks() {
     log_info "Select installation disk"
 
-    DISK="$(lsblk --nodeps --noheadings --exclude 7 --output NAME)"
-    NUMBER_OF_DISKS="$(echo "${DISK}" | wc -l )"
-    
-    if [[ ${NUMBER_OF_DISKS} -gt 1 ]]; then
-        # TODO: pass the disk as an argument in case there are multiple
-        log_error "Too many disks ${DISK}. Pass the disk with..."
+    DISK="$(lsblk --nodeps --noheadings --exclude 7 | sort -nk5 | awk '{print $1; exit}')"
+    ANSWER=""
+
+    while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
+        read -r ANSWER
+    done
+
+    if [[ "${ANSWER}" == 'no' ]]; then
+        # TODO: create arguments to this script
+        log_error "Please pass the desired disk with the argument..."
     fi
 
     log_ok "DONE"
