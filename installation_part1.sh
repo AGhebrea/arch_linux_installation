@@ -7,9 +7,7 @@ LOG_FILE="${LOG_FILE}.log"
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
-if source ./log_functions.sh; then
-    log_info "Sourced log_functions.sh"
-else
+if ! source ./log_functions.sh; then
     echo "Error! Could not source log_functions.sh"
     exit 1
 fi
@@ -190,7 +188,7 @@ function enter_environment() {
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    arch-chroot /mnt "/installation_part2.sh" "${MODE}" "${DISK}"
+    arch-chroot /mnt /bin/bash "/installation_part2.sh" "'${MODE}'" "'${DISK}'"
 }
 
 # MAIN
@@ -204,6 +202,10 @@ function main() {
 	install_packages
     generate_fstab
     enter_environment
+
+    log_info "Rebooting..."
+    sleep 1
+    reboot
 }
 
 main

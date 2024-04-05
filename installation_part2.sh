@@ -10,9 +10,7 @@ LOG_FILE="${LOG_FILE}.log"
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
 
 # Sourcing log functions
-if source log_functions.sh; then
-    log_info "sourced log_functions.sh"
-else
+if ! source log_functions.sh; then
     echo "Error! Could not source log_functions.sh"
     exit 1
 fi
