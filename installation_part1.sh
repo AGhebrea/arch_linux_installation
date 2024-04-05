@@ -39,7 +39,7 @@ function configuring_pacman(){
     log_ok "DONE"
 
     log_info "Installing the keyring"
-	pacman --noconfirm --sync --refresh archlinux-keyring
+	pacman --noconfirm --sync --refresh archlinux-keyring || log_error "Aborting..."
     log_ok "DONE"
 }
 
@@ -71,9 +71,7 @@ function partitioning() {
     log_info "Partitioning disk"
     log_info "Wiping the data on disk ${DISK}"
 
-    if ! wipefs --all "/dev/${DISK}"; then
-        log_error "Could not wipe disk ${DISK}. Aborting..."
-    fi
+    wipefs --all "/dev/${DISK}" || log_error "Could not wipe disk ${DISK}. Aborting..."
 
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
@@ -126,7 +124,7 @@ function formatting() {
     if [[ "${MODE}" == "UEFI" ]]; then
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
         # Fat32 filesystem
-        mkfs.vfat -F32 /dev/"${BOOT_P}"
+        mkfs.vfat -F32 "${BOOT_P}"
 
         SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
@@ -137,10 +135,7 @@ function formatting() {
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
-    mkswap /dev/"${SWAP_P}"
-    swapon /dev/"${SWAP_P}"
-    mkfs.ext4 -F /dev/"${HOME_P}"
-    mkfs.ext4 -F /dev/"${ROOT_P}"
+    mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}" || log_error "Aborting..."
 
     log_ok "DONE"
 }
@@ -150,14 +145,14 @@ function mounting() {
     log_info "Mounting partitions"
 
     mkdir --parents /mnt
-    mount /dev/"${ROOT_P}" /mnt
+    mount "${ROOT_P}" /mnt
 
     mkdir --parents /mnt/home
-    mount /dev/"${HOME_P}" /mnt/home
+    mount "${HOME_P}" /mnt/home
 
     [[ "${MODE}" == "UEFI" ]] && \
         mkdir --parents /mnt/boot && \
-        mount /dev/"${BOOT_P}" /mnt/boot
+        mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
 }
