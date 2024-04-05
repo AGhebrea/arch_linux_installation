@@ -9,6 +9,8 @@ LOG_FILE="${LOG_FILE}.log"
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
 
+log_error "MODE: ${MODE}, DISK: ${DISK}"
+
 # Sourcing log functions
 if ! source log_functions.sh; then
     echo "Error! Could not source log_functions.sh"

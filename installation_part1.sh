@@ -188,7 +188,7 @@ function enter_environment() {
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    arch-chroot /mnt /bin/bash "/installation_part2.sh" "'${MODE}'" "'${DISK}'"
+    arch-chroot /mnt /bin/bash "/installation_part2.sh" "${MODE}" "${DISK}"
 }
 
 # MAIN
@@ -204,8 +204,8 @@ function main() {
     enter_environment
 
     log_info "Rebooting..."
-    sleep 3
-    reboot
+    # sleep 3
+    # reboot
 }
 
 main
