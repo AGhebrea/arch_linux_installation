@@ -181,16 +181,16 @@ function enter_environment() {
     log_info "Copying the second installation part to new environment"
 
     chmod +x installation_part2.sh
-    cp installation_part2.sh /mnt
+    cp -a installation_part2.sh /mnt
+    cp -a log_functions.sh /mnt
 
     log_ok "DONE"
 
     log_info "Entering the new environment"
-    log_info "Run the second part of the script: './installation_part2.sh ${MODE} ${DISK}'"
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    arch-chroot /mnt "/installation_part2.sh ${MODE} ${DISK}"
+    arch-chroot /mnt "/installation_part2.sh" "${MODE}" "${DISK}"
 }
 
 # MAIN
