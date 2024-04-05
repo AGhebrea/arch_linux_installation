@@ -51,6 +51,8 @@ function disks() {
     ANSWER=""
 
     log_warning "From this point there is no going back! Proceed with caution."
+    log_info "Disk chosen: ${DISK}"
+
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
         printf "Select disk for installation: "
         read -r ANSWER
