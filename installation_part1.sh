@@ -18,7 +18,7 @@ function check_internet() {
 	if ! ping -c1 -w1 8.8.8.8 > /dev/null 2>&1; then
         log_info "Visit https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking"
         log_info "Optionally use 'links https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking'"
-        log_error "No Internet Connection"
+        log_error "No Internet Connection" && exit 1
     else
         log_ok "Connected to internet"
 	fi
@@ -37,15 +37,17 @@ function configuring_pacman(){
     log_ok "DONE"
 
     log_info "Installing the keyring"
-	pacman --noconfirm --sync --refresh archlinux-keyring || log_error "Aborting..."
+	pacman --noconfirm --sync --refresh archlinux-keyring || log_error "Aborting..." && exit 1
     log_ok "DONE"
+
+    export PASSED_CONFIGURING_PACMAN="PASSED"
 }
 
 # Selecting the disk to install on
 function disks() {
     log_info "Select installation disk"
 
-    DISK="$(lsblk --bytes --nodeps --noheadings --exclude 7 | sort --numeric-sort --key=5 | awk '{print $1; exit}')"
+    DISK="$(lsblk --bytes --nodeps --noheadings --exclude 7 --output NAME,SIZE | sort --numeric-sort --key=5 | awk '{print $1; exit}')"
     ANSWER=""
 
     log_warning "From this point there is no going back! Proceed with caution."
@@ -57,8 +59,9 @@ function disks() {
     done
 
     if [[ "${ANSWER}" == 'no' ]]; then
-        # TODO: create arguments for this script
-        log_error "Please pass the desired disk with the argument..."
+        log_error "Please pass the installation disk with the argument -d, --disk DIKS"
+        usage
+        exit 1
     fi
 
     log_ok "DONE"
@@ -69,7 +72,7 @@ function partitioning() {
     log_info "Partitioning disk"
     log_info "Wiping the data on disk ${DISK}"
 
-    wipefs --all "/dev/${DISK}" || log_error "Could not wipe disk ${DISK}. Aborting..."
+    wipefs --all "/dev/${DISK}" || log_error "Could not wipe disk ${DISK}. Aborting..." && exit 1
 
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
@@ -110,6 +113,8 @@ function partitioning() {
     fi
 
     log_ok "DONE"
+
+    export PASSED_PARTITIONING="PASSED"
 }
 
 
@@ -133,9 +138,11 @@ function formatting() {
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
-    mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}" || log_error "Aborting..."
+    mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}" || log_error "Aborting..." && exit 1
 
     log_ok "DONE"
+
+    export PASSED_FORMATTING="PASSED"
 }
 
 # Mounting partitons
@@ -153,6 +160,8 @@ function mounting() {
         mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
+
+    export PASSED_MOUNTING="PASSED"
 }
 
 # Installing packages
@@ -163,6 +172,8 @@ function install_packages(){
 	pacstrap -K /mnt $(tail packages.csv -n +2 | awk -F ',' '{print $1}' | paste -sd' ')
 
     log_ok "DONE"
+
+    export PASSED_INSTALL_PACKAGES="PASSED"
 }
 
 # Generating fstab
@@ -172,6 +183,8 @@ function generate_fstab(){
     genfstab -U /mnt >> /mnt/etc/fstab
 
     log_ok "DONE"
+
+    export PASSED_GENERATE_FSTAB="PASSED"
 }
 
 # Enter the new environment
@@ -194,18 +207,100 @@ function enter_environment() {
 # MAIN
 function main() {
 	check_internet
-	configuring_pacman
-	disks
-	partitioning
-	formatting
-	mounting
-	install_packages
-    generate_fstab
+	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
+
+    # Check if variable DISK is set or not: https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
+	[ -z "${DISK+x}" ] && disks
+
+    [ -z "${PASSED_PARTITIONING+x}" ] && partitioning
+    [ -z "${PASSED_FORMATTING+x}" ] && formatting
+    [ -z "${PASSED_MOUNTING+x}" ] && mounting
+    [ -z "${PASSED_INSTALL_PACKAGES+x}" ] && install_packages
+    [ -z "${PASSED_GENERATE_FSTAB+x}" ] && generate_fstab
     enter_environment
 
     log_info "Rebooting..."
     sleep 3
     reboot
 }
+
+function usage() {
+    cat << EOF
+
+Usage: ./$(basename "${0}") [OPTIONS [ARGS]]
+
+DESCRIPTION:
+    This is a bash script used for installing Arch Linux.
+    Available installation types:
+        - server
+        - desktop:
+            * i3 (DE)
+            * Gnome (DE)
+            * list_of_DEs
+
+OPTIONS:
+    -h, --help
+        Show this help message
+
+    -l, --list
+        List available disks
+
+    -d, --disk DISK
+        Provide disk for installation
+        Example:
+        ./$(basename "${0}") --disk sda
+
+EOF
+}
+
+if [[ $# -eq 0 ]]; then
+    log_info "No option provided"
+    usage
+    exit 1
+fi
+
+# Gather options
+while [[ ! $# -eq 0 ]]; do
+    case "${1}" in
+        -h | --help)
+            usage
+            exit 0
+            ;;
+
+        -l | --list)
+            if [[ -z "${2-}" || ! -e "${2}" ]]; then
+                usage
+                exit 1
+            fi
+            shift
+
+            lsblk --nodeps --noheadings --output NAME,SIZE
+            ;;
+
+        -d | --disk)
+            if [[ -z "${2-}" || ! -e "${2}" ]]; then
+                usage
+                exit 1
+            fi
+            shift
+            DISK="${1}"
+
+            if ! lsblk --nodeps --noheadings --output NAME,SIZE "/dev/${DISK}"; then
+                log_error "Wrong disk choice: ${DISK}"
+                log_info "List available disks with -l, --list"
+                usage
+                exit 1
+            fi
+            ;;
+
+        *)
+            echo "Invalid option: ${1}"
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 
 main
