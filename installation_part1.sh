@@ -253,12 +253,6 @@ OPTIONS:
 EOF
 }
 
-if [[ $# -eq 0 ]]; then
-    log_info "No option provided"
-    usage
-    exit 1
-fi
-
 # Gather options
 while [[ ! $# -eq 0 ]]; do
     case "${1}" in
