@@ -262,12 +262,9 @@ while [[ ! $# -eq 0 ]]; do
             ;;
 
         -l | --list)
-            if [[ -z "${2-}" || ! -e "${2}" ]]; then
-                usage
-                exit 1
-            fi
 
             lsblk --nodeps --noheadings --output NAME,SIZE
+
             ;;
 
         -d | --disk)
