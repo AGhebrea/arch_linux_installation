@@ -272,7 +272,6 @@ while [[ ! $# -eq 0 ]]; do
                 usage
                 exit 1
             fi
-            shift
 
             lsblk --nodeps --noheadings --output NAME,SIZE
             ;;
