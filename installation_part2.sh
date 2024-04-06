@@ -10,8 +10,8 @@ LOG_FILE="${LOG_FILE}.log"
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
 
 # Sourcing log functions
-if ! source log_functions.sh; then
-    echo "Error! Could not source log_functions.sh"
+if ! source ./functions.sh; then
+    echo "Error! Could not source functions.sh"
     exit 1
 fi
 
@@ -32,19 +32,22 @@ function configuring_pacman(){
     log_ok "DONE"
 
     log_info "Installing the keyring"
-	pacman --noconfirm --sync --refresh archlinux-keyring
+	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
+
+    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation.env
 }
 
 # Setting up time
 function set_time(){
     log_info "Setting up time"
 
-    ln --symbolic --force /usr/share/zoneinfo/Europe/Bucharest /etc/localtime
-    # system-to-hardwareclock
-    hwclock --systohc
+    exit_on_error ln --symbolic --force /usr/share/zoneinfo/Europe/Bucharest /etc/localtime && \
+        hwclock --systohc
 
     log_ok "DONE"
+
+    echo PASSED_SET_TIME="PASSED" >> .installation.env
 }
 
 # Changing the language to english
@@ -52,10 +55,12 @@ function change_language(){
     log_info "Setting up language"
 
     sed --in-place "s|#en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
-	echo "LANG=en_US.UTF-8" > /etc/locale.conf
-	locale-gen
+    echo "LANG=en_US.UTF-8" > /etc/locale.conf
+    locale-gen
 
     log_ok "DONE"
+
+    echo PASSED_CHANGE_LANGUAGE="PASSED" >> .installation.env
 }
 
 # Setting the hostname
@@ -65,6 +70,8 @@ function set_hostname(){
 	echo "archlinux" > /etc/hostname
 
     log_ok "DONE"
+
+    echo PASSED_SET_HOSTNAME="PASSED" >> .installation.env
 }
 
 # Change root password
@@ -76,6 +83,8 @@ function change_root_password() {
     done
 
     log_ok "DONE"
+
+    echo PASSED_CHANGE_ROOT_PASSWORD="PASSED" >> .installation.env
 }
 
 # Set user and password
@@ -90,7 +99,7 @@ function set_user() {
     done
 
     log_info "Creating ${NAME} user and adding it to wheel group"
-	useradd --create-home --groups wheel --shell /bin/bash "${NAME}"
+	exit_on_error useradd --create-home --groups wheel --shell /bin/bash "${NAME}"
 
     log_info "Adding wheel to sudoers"
     echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/01-wheel_group
@@ -101,46 +110,53 @@ function set_user() {
     done
 
     log_ok "DONE"
+
+    echo PASSED_SET_USER="PASSED" >> .installation.env
 }
 
 # Installing grub and creating configuration
 function grub_configuration() {
     log_info "Installing and configuring grub"
 	if [[ "${MODE}" = "UEFI" ]]; then
-        pacman --noconfirm --sync grub efibootmgr
-        grub-install --target=x86_64-efi --efi-directory=/boot
-		grub-mkconfig --output=/boot/grub/grub.cfg
+        exit_on_error pacman --noconfirm --sync grub efibootmgr && \
+            grub-install --target=x86_64-efi --efi-directory=/boot && \
+            grub-mkconfig --output=/boot/grub/grub.cfg
 	elif [[ "${MODE}" = "BIOS" ]]; then
-        pacman --noconfirm --sync grub
-		grub-install /dev/"${DISK}"
-		grub-mkconfig --output=/boot/grub/grub.cfg
+        exit_on_error pacman --noconfirm --sync grub && \
+            grub-install /dev/"${DISK}" && \
+            grub-mkconfig --output=/boot/grub/grub.cfg
 	else
 		log_error "An error occured at grub step. Exiting..."
 	fi
 
     log_ok "DONE"
+
+    echo PASSED_GRUB_CONFIGURATION="PASSED" >> .installation.env
 }
 
 # Enabling services
 function enable_services(){
 
     log_info "Enabling NetworkManager, earlyoom and sshd"
-    systemctl enable NetworkManager
-    systemctl enable sshd
+    exit_on_error systemctl enable NetworkManager && \
+        systemctl enable sshd
     log_ok "DONE"
+
+    echo PASSED_ENABLE_SERVICES="PASSED" >> .installation.env
 }
 
 
 # MAIN
 function main(){
-    configuring_pacman
-    set_time
-	change_language
-	set_hostname
-    change_root_password
-	set_user
-    grub_configuration
-    enable_services
+    touch .installation.env
+    [ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
+    [ -z "${PASSED_SET_TIME+x}" ] && set_time
+	[ -z "${PASSED_CHANGE_LANGUAGE+x}" ] && change_language
+	[ -z "${PASSED_SET_HOSTNAME+x}" ] && set_hostname
+    [ -z "${PASSED_CHANGE_ROOT_PASSWORD+x}" ] && change_root_password
+	[ -z "${PASSED_SET_USER+x}" ] && set_user
+    [ -z "${PASSED_GRUB_CONFIGURATION+x}" ] && grub_configuration
+    [ -z "${PASSED_ENABLE_SERVICES+x}" ] && enable_services
 
     log_ok "DONE"
     exec 1>&3 2>&4
