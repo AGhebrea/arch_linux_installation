@@ -216,6 +216,7 @@ function enter_environment() {
 
 # MAIN
 function main() {
+    touch .installation_variables
 	check_internet
 	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
 
