@@ -3,8 +3,8 @@
 LOG_FILE="$(basename "${0}")"
 LOG_FILE="${LOG_FILE}.log"
 
-if [ -f .installation_variables ]; then
-    source .installation_variables
+if [ -f .installation.env ]; then
+    source .installation.env
 fi
 
 # Logging the entire script
@@ -44,7 +44,7 @@ function configuring_pacman(){
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
 
-    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation_variables
+    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation.env
 }
 
 # Selecting the disk to install on
@@ -100,7 +100,7 @@ function partitioning() {
 
     log_ok "DONE"
 
-    echo PASSED_PARTITIONING="PASSED" >> .installation_variables
+    echo PASSED_PARTITIONING="PASSED" >> .installation.env
 }
 
 
@@ -131,7 +131,7 @@ function formatting() {
 
     log_ok "DONE"
 
-    echo PASSED_FORMATTING="PASSED" >> .installation_variables
+    echo PASSED_FORMATTING="PASSED" >> .installation.env
 }
 
 # Mounting partitons
@@ -149,7 +149,7 @@ function mounting() {
 
     log_ok "DONE"
 
-    echo PASSED_MOUNTING="PASSED" >> .installation_variables
+    echo PASSED_MOUNTING="PASSED" >> .installation.env
 }
 
 # Installing packages
@@ -161,7 +161,7 @@ function install_packages(){
 
     log_ok "DONE"
 
-    echo PASSED_INSTALL_PACKAGES="PASSED" >> .installation_variables
+    echo PASSED_INSTALL_PACKAGES="PASSED" >> .installation.env
 }
 
 # Generating fstab
@@ -172,7 +172,7 @@ function generate_fstab(){
 
     log_ok "DONE"
 
-    echo PASSED_GENERATE_FSTAB="PASSED" >> .installation_variables
+    echo PASSED_GENERATE_FSTAB="PASSED" >> .installation.env
 }
 
 # Enter the new environment
@@ -195,7 +195,7 @@ function enter_environment() {
 
 # MAIN
 function main() {
-    touch .installation_variables
+    touch .installation.env
 	check_internet
 	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
 

@@ -34,6 +34,8 @@ function configuring_pacman(){
     log_info "Installing the keyring"
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
+
+    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation.env
 }
 
 # Setting up time
@@ -44,17 +46,21 @@ function set_time(){
         hwclock --systohc
 
     log_ok "DONE"
+
+    echo PASSED_SET_TIME="PASSED" >> .installation.env
 }
 
 # Changing the language to english
 function change_language(){
     log_info "Setting up language"
 
-    exit_on_error sed --in-place "s|#en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen && \
-        echo "LANG=en_US.UTF-8" > /etc/locale.conf && \
-        locale-gen
+    sed --in-place "s|#en_US.UTF-8 UTF-8|en_US.UTF-8 UTF-8|g" /etc/locale.gen
+    echo "LANG=en_US.UTF-8" > /etc/locale.conf
+    locale-gen
 
     log_ok "DONE"
+
+    echo PASSED_CHANGE_LANGUAGE="PASSED" >> .installation.env
 }
 
 # Setting the hostname
@@ -64,6 +70,8 @@ function set_hostname(){
 	echo "archlinux" > /etc/hostname
 
     log_ok "DONE"
+
+    echo PASSED_SET_HOSTNAME="PASSED" >> .installation.env
 }
 
 # Change root password
@@ -75,6 +83,8 @@ function change_root_password() {
     done
 
     log_ok "DONE"
+
+    echo PASSED_CHANGE_ROOT_PASSWORD="PASSED" >> .installation.env
 }
 
 # Set user and password
@@ -100,6 +110,8 @@ function set_user() {
     done
 
     log_ok "DONE"
+
+    echo PASSED_SET_USER="PASSED" >> .installation.env
 }
 
 # Installing grub and creating configuration
@@ -118,6 +130,8 @@ function grub_configuration() {
 	fi
 
     log_ok "DONE"
+
+    echo PASSED_GRUB_CONFIGURATION="PASSED" >> .installation.env
 }
 
 # Enabling services
@@ -127,19 +141,22 @@ function enable_services(){
     exit_on_error systemctl enable NetworkManager && \
         systemctl enable sshd
     log_ok "DONE"
+
+    echo PASSED_ENABLE_SERVICES="PASSED" >> .installation.env
 }
 
 
 # MAIN
 function main(){
-    configuring_pacman
-    set_time
-	change_language
-	set_hostname
-    change_root_password
-	set_user
-    grub_configuration
-    enable_services
+    touch .installation.env
+    [ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
+    [ -z "${PASSED_SET_TIME+x}" ] && set_time
+	[ -z "${PASSED_CHANGE_LANGUAGE+x}" ] && change_language
+	[ -z "${PASSED_SET_HOSTNAME+x}" ] && set_hostname
+    [ -z "${PASSED_CHANGE_ROOT_PASSWORD+x}" ] && change_root_password
+	[ -z "${PASSED_SET_USER+x}" ] && set_user
+    [ -z "${PASSED_GRUB_CONFIGURATION+x}" ] && grub_configuration
+    [ -z "${PASSED_ENABLE_SERVICES+x}" ] && enable_services
 
     log_ok "DONE"
     exec 1>&3 2>&4
