@@ -118,7 +118,7 @@ function set_user() {
 function grub_configuration() {
     log_info "Installing and configuring grub"
 	if [[ "${MODE}" = "UEFI" ]]; then
-        exit_on_erro pacman --noconfirm --sync grub efibootmgr && \
+        exit_on_error pacman --noconfirm --sync grub efibootmgr && \
             grub-install --target=x86_64-efi --efi-directory=/boot && \
             grub-mkconfig --output=/boot/grub/grub.cfg
 	elif [[ "${MODE}" = "BIOS" ]]; then
