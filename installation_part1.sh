@@ -181,6 +181,7 @@ function enter_environment() {
 
     exit_on_error chmod +x installation_part2.sh && \
         cp -a installation_part2.sh /mnt && \
+        cp -a installation_part1.sh.log /mnt && \
         cp -a functions.sh /mnt && \
         cp -a log_functions.sh /mnt
 
