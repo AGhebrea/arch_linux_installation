@@ -274,7 +274,7 @@ while [[ ! $# -eq 0 ]]; do
 
         -l | --list)
             log_info "Listing disks"
-            lsblk --nodeps --noheadings --output NAME,SIZE
+            lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
             log_ok "DONE"
             exit 0
             ;;
