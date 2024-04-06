@@ -41,7 +41,9 @@ function configuring_pacman(){
     log_ok "DONE"
 
     log_info "Installing the keyring"
-	pacman --noconfirm --sync --refresh archlinux-keyring || log_error "Aborting..." && exit 1
+	if ! pacman --noconfirm --sync --refresh archlinux-keyring; then
+        log_error "Aborting..." && exit 1
+    fi
     log_ok "DONE"
 
     echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation_variables
@@ -76,7 +78,9 @@ function partitioning() {
     log_info "Partitioning disk"
     log_info "Wiping the data on disk ${DISK}"
 
-    wipefs --all "/dev/${DISK}" || log_error "Could not wipe disk ${DISK}. Aborting..." && exit 1
+    if ! wipefs --all "/dev/${DISK}"; then
+        log_error "Could not wipe disk ${DISK}. Aborting..." && exit 1
+    fi
 
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
@@ -142,7 +146,9 @@ function formatting() {
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
-    mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}" || log_error "Aborting..." && exit 1
+    if ! mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}"; then
+        log_error "Aborting..." && exit 1
+    fi
 
     log_ok "DONE"
 
