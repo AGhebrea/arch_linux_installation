@@ -3,6 +3,10 @@
 LOG_FILE="$(basename "${0}")"
 LOG_FILE="${LOG_FILE}.log"
 
+if [ -f .installation_variables ]; then
+    source .installation_variables
+fi
+
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
@@ -40,7 +44,7 @@ function configuring_pacman(){
 	pacman --noconfirm --sync --refresh archlinux-keyring || log_error "Aborting..." && exit 1
     log_ok "DONE"
 
-    export PASSED_CONFIGURING_PACMAN="PASSED"
+    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation_variables
 }
 
 # Selecting the disk to install on
@@ -114,7 +118,7 @@ function partitioning() {
 
     log_ok "DONE"
 
-    export PASSED_PARTITIONING="PASSED"
+    echo PASSED_PARTITIONING="PASSED" >> .installation_variables
 }
 
 
@@ -142,7 +146,7 @@ function formatting() {
 
     log_ok "DONE"
 
-    export PASSED_FORMATTING="PASSED"
+    echo PASSED_FORMATTING="PASSED" >> .installation_variables
 }
 
 # Mounting partitons
@@ -161,7 +165,7 @@ function mounting() {
 
     log_ok "DONE"
 
-    export PASSED_MOUNTING="PASSED"
+    echo PASSED_MOUNTING="PASSED" >> .installation_variables
 }
 
 # Installing packages
@@ -173,7 +177,7 @@ function install_packages(){
 
     log_ok "DONE"
 
-    export PASSED_INSTALL_PACKAGES="PASSED"
+    echo PASSED_INSTALL_PACKAGES="PASSED" >> .installation_variables
 }
 
 # Generating fstab
@@ -184,7 +188,7 @@ function generate_fstab(){
 
     log_ok "DONE"
 
-    export PASSED_GENERATE_FSTAB="PASSED"
+    echo PASSED_GENERATE_FSTAB="PASSED" >> .installation_variables
 }
 
 # Enter the new environment
