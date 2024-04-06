@@ -37,7 +37,7 @@ function configuring_pacman(){
 
     CONF_FILE="/etc/pacman.conf"
 
-    sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
+    exit_on_error sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
     log_ok "DONE"
 
     log_info "Installing the keyring"
@@ -81,39 +81,21 @@ function partitioning() {
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
         # Make a GPT partitioning type - compatible with UEFI
-        exit_on_error parted --script /dev/"${DISK}" mklabel gpt
-
-        # Boot
-        exit_on_error parted --script /dev/"${DISK}" mkpart fat32 2048s 1GiB
-        exit_on_error parted --script /dev/"${DISK}" set 1 esp on
-
-        # Swap
-        exit_on_error parted --script /dev/"${DISK}" mkpart linux-swap 1GiB 5GiB
-
-        # Root
-        exit_on_error parted --script /dev/"${DISK}" mkpart ext4 5GiB 35GiB
-
-        # Home
-        exit_on_error parted --script /dev/"${DISK}" mkpart ext4 35GiB 100%
-
-        # Partitions allignment
-        exit_on_error parted --script /dev/"${DISK}" align-check optimal 1 
+        exit_on_error parted --script /dev/"${DISK}" mklabel gpt && \
+            parted --script /dev/"${DISK}" mkpart fat32 2048s 1GiB && \
+            parted --script /dev/"${DISK}" set 1 esp on && \
+            parted --script /dev/"${DISK}" mkpart linux-swap 1GiB 5GiB && \
+            parted --script /dev/"${DISK}" mkpart ext4 5GiB 35GiB && \
+            parted --script /dev/"${DISK}" mkpart ext4 35GiB 100% && \
+            parted --script /dev/"${DISK}" align-check optimal 1 
     else
         MODE="BIOS"
         # Make a MBR partitioning type - compatible with BIOS
-        exit_on_error parted --script /dev/"${DISK}" mklabel msdos
-
-        # Boot and Root
-        exit_on_error parted --script /dev/"${DISK}" mkpart primary ext4 2048s 35GiB
-
-        # Swap
-        exit_on_error parted --script /dev/"${DISK}" mkpart primary linux-swap 35GiB 39GiB
-
-        # Home
-        exit_on_error parted --script /dev/"${DISK}" mkpart primary ext4 39GiB 100%
-
-        # Partitions allignment
-        exit_on_error parted --script /dev/"${DISK}" align-check optimal 1 
+        exit_on_error parted --script /dev/"${DISK}" mklabel msdos && \
+            parted --script /dev/"${DISK}" mkpart primary ext4 2048s 35GiB && \
+            parted --script /dev/"${DISK}" mkpart primary linux-swap 35GiB 39GiB && \
+            parted --script /dev/"${DISK}" mkpart primary ext4 39GiB 100% && \
+            parted --script /dev/"${DISK}" align-check optimal 1 
     fi
 
     log_ok "DONE"
@@ -142,7 +124,10 @@ function formatting() {
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
-    exit_on_error mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}"
+    exit_on_error mkswap "${SWAP_P}" && \
+        swapon "${SWAP_P}" && \
+        mkfs.ext4 -F "${HOME_P}" && \
+        mkfs.ext4 -F "${ROOT_P}"
 
     log_ok "DONE"
 
@@ -153,15 +138,14 @@ function formatting() {
 function mounting() {
     log_info "Mounting partitions"
 
-    mkdir --parents /mnt
-    exit_on_error mount "${ROOT_P}" /mnt
-
-    mkdir --parents /mnt/home
-    exit_on_error mount "${HOME_P}" /mnt/home
+    exit_on_error mkdir --parents /mnt && \
+        mount "${ROOT_P}" /mnt && \
+        mkdir --parents /mnt/home && \
+        mount "${HOME_P}" /mnt/home
 
     [[ "${MODE}" == "UEFI" ]] && \
-        mkdir --parents /mnt/boot && \
-        exit_on_error mount "${BOOT_P}" /mnt/boot
+        exit_on_error mkdir --parents /mnt/boot && \
+            mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
 
@@ -195,9 +179,10 @@ function generate_fstab(){
 function enter_environment() {
     log_info "Copying the second installation part to new environment"
 
-    chmod +x installation_part2.sh
-    cp -a installation_part2.sh /mnt
-    cp -a log_functions.sh /mnt
+    exit_on_error chmod +x installation_part2.sh && \
+        cp -a installation_part2.sh /mnt && \
+        cp -a functions.sh /mnt && \
+        cp -a log_functions.sh /mnt
 
     log_ok "DONE"
 
