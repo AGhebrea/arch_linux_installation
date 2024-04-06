@@ -274,7 +274,7 @@ while [[ ! $# -eq 0 ]]; do
             ;;
 
         -d | --disk)
-            if [[ -z "${2-}" || ! -e "${2-}" ]]; then
+            if [ -z "${2-}" ]; then
                 usage
                 exit 1
             fi
