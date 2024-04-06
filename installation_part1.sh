@@ -262,9 +262,10 @@ while [[ ! $# -eq 0 ]]; do
             ;;
 
         -l | --list)
-
+            log_info "Listing disks"
             lsblk --nodeps --noheadings --output NAME,SIZE
-
+            log_ok "DONE"
+            exit 0
             ;;
 
         -d | --disk)
