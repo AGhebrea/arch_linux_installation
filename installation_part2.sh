@@ -28,7 +28,7 @@ function configuring_pacman(){
 
     CONF_FILE="/etc/pacman.conf"
 
-    exit_on_error sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
+    sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
     log_ok "DONE"
 
     log_info "Installing the keyring"
