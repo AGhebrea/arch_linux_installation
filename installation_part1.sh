@@ -81,21 +81,21 @@ function partitioning() {
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
         # Make a GPT partitioning type - compatible with UEFI
-        exit_on_error parted --script /dev/"${DISK}" mklabel gpt && \
-            parted --script /dev/"${DISK}" mkpart fat32 2048s 1GiB && \
-            parted --script /dev/"${DISK}" set 1 esp on && \
-            parted --script /dev/"${DISK}" mkpart linux-swap 1GiB 5GiB && \
-            parted --script /dev/"${DISK}" mkpart ext4 5GiB 35GiB && \
-            parted --script /dev/"${DISK}" mkpart ext4 35GiB 100% && \
-            parted --script /dev/"${DISK}" align-check optimal 1 
+        exit_on_error parted --script "/dev/${DISK}" mklabel gpt && \
+            parted --script "/dev/${DISK}" mkpart fat32 2048s 1GiB && \
+            parted --script "/dev/${DISK}" set 1 esp on && \
+            parted --script "/dev/${DISK}" mkpart linux-swap 1GiB 5GiB && \
+            parted --script "/dev/${DISK}" mkpart ext4 5GiB 35GiB && \
+            parted --script "/dev/${DISK}" mkpart ext4 35GiB 100% && \
+            parted --script "/dev/${DISK}" align-check optimal 1 
     else
         MODE="BIOS"
         # Make a MBR partitioning type - compatible with BIOS
-        exit_on_error parted --script /dev/"${DISK}" mklabel msdos && \
-            parted --script /dev/"${DISK}" mkpart primary ext4 2048s 35GiB && \
-            parted --script /dev/"${DISK}" mkpart primary linux-swap 35GiB 39GiB && \
-            parted --script /dev/"${DISK}" mkpart primary ext4 39GiB 100% && \
-            parted --script /dev/"${DISK}" align-check optimal 1 
+        exit_on_error parted --script "/dev/${DISK}" mklabel msdos && \
+            parted --script "/dev/${DISK}" mkpart primary ext4 2048s 35GiB && \
+            parted --script "/dev/${DISK}" mkpart primary linux-swap 35GiB 39GiB && \
+            parted --script "/dev/${DISK}" mkpart primary ext4 39GiB 100% && \
+            parted --script "/dev/${DISK}" align-check optimal 1 
     fi
 
     log_ok "DONE"
