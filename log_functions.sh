@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-log_colors()
+function log_colors()
 {
     RED='\033[0;31m'
     YELLOW='\033[0;33m'
@@ -10,7 +10,7 @@ log_colors()
     RESET='\033[0m'
 }
 
-log_it()
+function log_it()
 {
     local LOG_STATUS=''
     local LOG_COLOR=''

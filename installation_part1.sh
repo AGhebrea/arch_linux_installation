@@ -11,8 +11,8 @@ fi
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
-if ! source ./log_functions.sh; then
-    echo "Error! Could not source log_functions.sh"
+if ! source ./functions.sh; then
+    echo "Error! Could not source functions.sh"
     exit 1
 fi
 
@@ -41,9 +41,7 @@ function configuring_pacman(){
     log_ok "DONE"
 
     log_info "Installing the keyring"
-	if ! pacman --noconfirm --sync --refresh archlinux-keyring; then
-        log_error "Aborting..." && exit 1
-    fi
+	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
 
     echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation_variables
@@ -78,46 +76,44 @@ function partitioning() {
     log_info "Partitioning disk"
     log_info "Wiping the data on disk ${DISK}"
 
-    if ! wipefs --all "/dev/${DISK}"; then
-        log_error "Could not wipe disk ${DISK}. Aborting..." && exit 1
-    fi
+    exit_on_error wipefs --all "/dev/${DISK}"
 
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
         MODE="UEFI"
         # Make a GPT partitioning type - compatible with UEFI
-        parted --script /dev/"${DISK}" mklabel gpt
+        exit_on_error parted --script /dev/"${DISK}" mklabel gpt
 
         # Boot
-        parted --script /dev/"${DISK}" mkpart fat32 2048s 1GiB
-        parted --script /dev/"${DISK}" set 1 esp on
+        exit_on_error parted --script /dev/"${DISK}" mkpart fat32 2048s 1GiB
+        exit_on_error parted --script /dev/"${DISK}" set 1 esp on
 
         # Swap
-        parted --script /dev/"${DISK}" mkpart linux-swap 1GiB 5GiB
+        exit_on_error parted --script /dev/"${DISK}" mkpart linux-swap 1GiB 5GiB
 
         # Root
-        parted --script /dev/"${DISK}" mkpart ext4 5GiB 35GiB
+        exit_on_error parted --script /dev/"${DISK}" mkpart ext4 5GiB 35GiB
 
         # Home
-        parted --script /dev/"${DISK}" mkpart ext4 35GiB 100%
+        exit_on_error parted --script /dev/"${DISK}" mkpart ext4 35GiB 100%
 
         # Partitions allignment
-        parted --script /dev/"${DISK}" align-check optimal 1 
+        exit_on_error parted --script /dev/"${DISK}" align-check optimal 1 
     else
         MODE="BIOS"
         # Make a MBR partitioning type - compatible with BIOS
-        parted --script /dev/"${DISK}" mklabel msdos
+        exit_on_error parted --script /dev/"${DISK}" mklabel msdos
 
         # Boot and Root
-        parted --script /dev/"${DISK}" mkpart primary ext4 2048s 35GiB
+        exit_on_error parted --script /dev/"${DISK}" mkpart primary ext4 2048s 35GiB
 
         # Swap
-        parted --script /dev/"${DISK}" mkpart primary linux-swap 35GiB 39GiB
+        exit_on_error parted --script /dev/"${DISK}" mkpart primary linux-swap 35GiB 39GiB
 
         # Home
-        parted --script /dev/"${DISK}" mkpart primary ext4 39GiB 100%
+        exit_on_error parted --script /dev/"${DISK}" mkpart primary ext4 39GiB 100%
 
         # Partitions allignment
-        parted --script /dev/"${DISK}" align-check optimal 1 
+        exit_on_error parted --script /dev/"${DISK}" align-check optimal 1 
     fi
 
     log_ok "DONE"
@@ -135,7 +131,7 @@ function formatting() {
     if [[ "${MODE}" == "UEFI" ]]; then
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
         # Fat32 filesystem
-        mkfs.vfat -F32 "${BOOT_P}"
+        exit_on_error mkfs.vfat -F32 "${BOOT_P}"
 
         SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
@@ -146,9 +142,7 @@ function formatting() {
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
-    if ! mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}"; then
-        log_error "Aborting..." && exit 1
-    fi
+    exit_on_error mkswap "${SWAP_P}" && swapon "${SWAP_P}" && mkfs.ext4 -F "${HOME_P}" && mkfs.ext4 -F "${ROOT_P}"
 
     log_ok "DONE"
 
@@ -160,14 +154,14 @@ function mounting() {
     log_info "Mounting partitions"
 
     mkdir --parents /mnt
-    mount "${ROOT_P}" /mnt
+    exit_on_error mount "${ROOT_P}" /mnt
 
     mkdir --parents /mnt/home
-    mount "${HOME_P}" /mnt/home
+    exit_on_error mount "${HOME_P}" /mnt/home
 
     [[ "${MODE}" == "UEFI" ]] && \
         mkdir --parents /mnt/boot && \
-        mount "${BOOT_P}" /mnt/boot
+        exit_on_error mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
 
@@ -179,7 +173,7 @@ function install_packages(){
     log_info "Installing packages on the new system"
 
     # shellcheck disable=SC2046
-	pacstrap -K /mnt $(tail packages.csv -n +2 | awk -F ',' '{print $1}' | paste -sd' ')
+	exit_on_error pacstrap -K /mnt $(tail packages.csv -n +2 | awk -F ',' '{print $1}' | paste -sd' ')
 
     log_ok "DONE"
 
@@ -190,7 +184,7 @@ function install_packages(){
 function generate_fstab(){
     log_info "Generating fstab"
 
-    genfstab -U /mnt >> /mnt/etc/fstab
+    exit_on_error genfstab -U /mnt >> /mnt/etc/fstab
 
     log_ok "DONE"
 
@@ -211,7 +205,7 @@ function enter_environment() {
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    arch-chroot /mnt /bin/bash "/installation_part2.sh" "${MODE}" "${DISK}"
+    exit_on_error arch-chroot /mnt /bin/bash "/installation_part2.sh" "${MODE}" "${DISK}"
 }
 
 # MAIN
