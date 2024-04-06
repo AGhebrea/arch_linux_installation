@@ -53,7 +53,7 @@ function configuring_pacman(){
 function disks() {
     log_info "Select installation disk"
 
-    DISK="$(lsblk --bytes --nodeps --noheadings --exclude 7 --output NAME,SIZE | sort --key=5 | awk '{print $1; exit}')"
+    DISK="$(lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE | sort --key=5 | awk '{print $1; exit}')"
     ANSWER=""
 
     log_warning "From this point there is no going back! Proceed with caution."
