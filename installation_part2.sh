@@ -3,8 +3,8 @@
 
 MODE="${1}"
 DISK="${2}"
-LOG_FILE="$(basename "${0}")"
-LOG_FILE="${LOG_FILE}.log"
+SCRIPT_NAME="$(basename "${0}")"
+LOG_FILE="${SCRIPT_NAME}.log"
 
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
@@ -143,6 +143,15 @@ function enable_services(){
     log_ok "DONE"
 
     echo PASSED_ENABLE_SERVICES="PASSED" >> .installation.env
+}
+
+# TODO: this configuration must be on top. Also, continue it
+function extra_configuration() {
+    exit_on_error source ./installation_config.sh
+
+    if [ "${DESKTOP}" = "yes" ]; then
+
+    fi
 }
 
 

@@ -1,4 +1,3 @@
-Package,Source,Description
 linux,repo,Linux Kernel
 linux-firmware,repo,Firmware for different components
 base,repo,The base packages for having a minimal functioning linux system

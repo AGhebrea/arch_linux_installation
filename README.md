@@ -8,7 +8,6 @@ of arch linux. Meaning:
     - tmux config
     - neovim config
     - i3 config
-    - gnome config
 
 ## Getting Started
 

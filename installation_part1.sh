@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-LOG_FILE="$(basename "${0}")"
-LOG_FILE="${LOG_FILE}.log"
+SCRIPT_NAME="$(basename "${0}")"
+LOG_FILE="${SCRIPT_NAME}.log"
 
 if [ -f .installation.env ]; then
+    # shellcheck disable=1091
     source .installation.env
 fi
 
@@ -16,12 +17,40 @@ if ! source ./functions.sh; then
     exit 1
 fi
 
+function usage() {
+    cat << EOF
+
+Usage: ./${SCRIPT_NAME} [OPTIONS [ARGS]]
+
+DESCRIPTION:
+    This is a bash script used for installing Arch Linux.
+    Available installation types:
+        - server
+        - desktop:
+            * i3 (DE)
+            * Gnome (DE)
+            * list_of_DEs
+
+OPTIONS:
+    -h, --help
+        Show this help message
+
+    -l, --list
+        List available disks
+
+    -d, --disk DISK
+        Provide disk for installation
+        Example:
+        ./${SCRIPT_NAME} --disk sda
+
+EOF
+}
+
 # Check for internet
 function check_internet() {
     log_info "Check Internet"
 	if ! ping -c1 -w1 8.8.8.8 > /dev/null 2>&1; then
         log_info "Visit https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking"
-        log_info "Optionally use 'links https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking'"
         log_error "No Internet Connection" && exit 1
     else
         log_ok "Connected to internet"
@@ -153,11 +182,11 @@ function mounting() {
 }
 
 # Installing packages
-function install_packages(){
+function install_core_packages(){
     log_info "Installing packages on the new system"
 
     # shellcheck disable=SC2046
-	exit_on_error pacstrap -K /mnt $(tail packages.csv -n +2 | awk -F ',' '{print $1}' | paste -sd' ')
+	exit_on_error pacstrap -K /mnt $(awk -F ',' '{printf "%s ", $1}' core-packages.csv)
 
     log_ok "DONE"
 
@@ -206,42 +235,13 @@ function main() {
     [ -z "${PASSED_PARTITIONING+x}" ] && partitioning
     [ -z "${PASSED_FORMATTING+x}" ] && formatting
     [ -z "${PASSED_MOUNTING+x}" ] && mounting
-    [ -z "${PASSED_INSTALL_PACKAGES+x}" ] && install_packages
+    [ -z "${PASSED_INSTALL_CORE_PACKAGES+x}" ] && install_core_packages
     [ -z "${PASSED_GENERATE_FSTAB+x}" ] && generate_fstab
     enter_environment
 
     log_info "Rebooting..."
     sleep 3
     reboot
-}
-
-function usage() {
-    cat << EOF
-
-Usage: ./$(basename "${0}") [OPTIONS [ARGS]]
-
-DESCRIPTION:
-    This is a bash script used for installing Arch Linux.
-    Available installation types:
-        - server
-        - desktop:
-            * i3 (DE)
-            * Gnome (DE)
-            * list_of_DEs
-
-OPTIONS:
-    -h, --help
-        Show this help message
-
-    -l, --list
-        List available disks
-
-    -d, --disk DISK
-        Provide disk for installation
-        Example:
-        ./$(basename "${0}") --disk sda
-
-EOF
 }
 
 # Gather options
@@ -255,6 +255,18 @@ while [[ ! $# -eq 0 ]]; do
         -l | --list)
             log_info "Listing disks"
             lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
+            log_ok "DONE"
+            exit 0
+            ;;
+
+        -c | --clean)
+            log_info "Starting cleaning"
+
+            rm /mnt/.installation.env
+            umount --recursive /mnt
+            swapoff "${SWAP_P}"
+            rm .installation.env
+
             log_ok "DONE"
             exit 0
             ;;

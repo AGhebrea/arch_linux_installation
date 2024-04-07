@@ -1,0 +1,21 @@
+i3,repo,i3 desktop environment
+xorg,repo,Server for graphics
+xorg-xinit,repo,Xorg initializing tool
+xorg-xinput,repo,Xorg for processing inputs
+xorg-xrandr,repo,Xorg for managaing windows
+xwallpaper,repo,Xorg for wallpapers
+pavucontrol,repo,Graphical interface for audio control
+pulseaudio,repo,Audio server
+pamixer,repo,Terminal based audio control
+picom,repo,Server for managing graphics
+network-manager-applet,repo,Network Manager applet
+xss-lock,repo,Xorg locking
+dex,repo,Manage desktop entries
+lightdm,repo,Login manager
+lightdm-gtk-greeter,repo,Login manager greeter
+ttf-jetbrains-mono,repo,Font
+ttf-jetbrains-mono-nerd,repo,Nerd font
+pa-applet-git,AUR,PulseAudio Applet
+dunst,repo,Notification system
+thunar,repo,Lightweight File Manager
+dmenu,repo,Application Launcher
