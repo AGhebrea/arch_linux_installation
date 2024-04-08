@@ -41,6 +41,9 @@ OPTIONS:
     -l, --list
         List available disks
 
+    -c, --clean
+        Clean the environment for a fresh usage of the script
+
     -d, --disk DISK
         Provide disk for installation
         Example:
