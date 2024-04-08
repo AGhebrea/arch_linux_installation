@@ -202,7 +202,7 @@ function install_additional_packages() {
     log_info "Installing additonal packages on the new system"
 
     # shellcheck disable=SC2046
-	exit_on_error pacstrap -K /mnt $(awk -F ',' '{printf "%s ", $1}' "${DE}-packages.csv")
+	exit_on_error pacstrap -K /mnt $(awk -F ',' '/repo/ {printf "%s ", $1}' "${DE}-packages.csv")
 
     log_ok "DONE"
 
