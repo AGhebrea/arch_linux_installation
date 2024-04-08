@@ -214,9 +214,9 @@ function enter_environment() {
     log_info "Copying all information to installation disk"
 
     TEMP_DIR="$(mktemp --directory --dry-run)"
-    mkdir "/mnt${TEMP_DIR}"
+    mkdir --parents "/mnt${TEMP_DIR}"
 
-    exit_on_error cp --archive --recursive . "/mnt${TEMP_DIR}"
+    exit_on_error cp --archive --recursive "${CWD}" "/mnt${TEMP_DIR}"
 
     log_ok "DONE"
 
