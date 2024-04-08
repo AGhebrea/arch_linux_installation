@@ -7,8 +7,6 @@ LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
 PASSED_ENV_VARS="${CWD}/.installation_part1.env"
 FUNCTIONS="${CWD}/functions.sh"
 
-export SWAP_P=""
-
 if [ -f "${PASSED_ENV_VARS}" ]; then
     source "${PASSED_ENV_VARS}"
 fi
@@ -166,6 +164,7 @@ function formatting() {
     log_ok "DONE"
 
     echo PASSED_FORMATTING="PASSED" >> "${PASSED_ENV_VARS}"
+    echo SWAP_P="${SWAP_P}" >> "${PASSED_ENV_VARS}"
 }
 
 # Mounting partitons
