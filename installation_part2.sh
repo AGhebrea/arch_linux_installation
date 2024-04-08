@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=1090
 
-CWD="$(pwd)"
+
+TEMP_DIR="temp_install_dir"
 SCRIPT_NAME="$(basename "${0}")"
-LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
-PASSED_ENV_VARS="${CWD}/.installation_part2.env"
-FUNCTIONS="${CWD}/functions.sh"
-CONFIG_FILE="${CWD}/installation_config.sh"
+LOG_FILE="${TEMP_DIR}/${SCRIPT_NAME}.log"
+PASSED_ENV_VARS="${TEMP_DIR}/.installation_part2.env"
+FUNCTIONS="${TEMP_DIR}/functions.sh"
+CONFIG_FILE="${TEMP_DIR}/installation_config.sh"
 
 MODE="${1}"
 DISK="${2}"
