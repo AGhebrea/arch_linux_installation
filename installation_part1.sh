@@ -134,8 +134,6 @@ function partitioning() {
     fi
 
     log_ok "DONE"
-
-    echo PASSED_PARTITIONING="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 
@@ -234,7 +232,7 @@ function main() {
     # Check if variable DISK is set or not: https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
 	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
 	[ -z "${DISK+x}" ] && disks
-    [ -z "${PASSED_PARTITIONING+x}" ] && partitioning
+    partitioning
     [ -z "${PASSED_FORMATTING+x}" ] && formatting
     [ -z "${PASSED_MOUNTING+x}" ] && mounting
     [ -z "${PASSED_INSTALL_CORE_PACKAGES+x}" ] && install_core_packages
