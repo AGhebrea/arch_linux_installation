@@ -149,12 +149,12 @@ function formatting() {
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
         exit_on_error mkfs.vfat -F32 "${BOOT_P}"
 
-        SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
+        export SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
         HOME_P="$(echo "${PARTITIONS}" | sed -n '4p')"
     elif [[ "${MODE}" = "BIOS" ]]; then 
         ROOT_P=$(echo "${PARTITIONS}" | sed -n '1p')
-        SWAP_P=$(echo "${PARTITIONS}" | sed -n '2p')
+        export SWAP_P=$(echo "${PARTITIONS}" | sed -n '2p')
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
@@ -264,7 +264,6 @@ while [[ ! $# -eq 0 ]]; do
         -c | --clean)
             log_info "Starting cleaning"
 
-            rm -rf "/mnt${TEMP_DIR}"
             umount --recursive /mnt
             swapoff "${SWAP_P}"
             rm "${PASSED_ENV_VARS}"
