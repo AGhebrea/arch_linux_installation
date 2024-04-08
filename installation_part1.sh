@@ -1,19 +1,22 @@
 #!/usr/bin/env bash
+# shellcheck disable=1090
 
+CWD="$(pwd)"
 SCRIPT_NAME="$(basename "${0}")"
-LOG_FILE="${SCRIPT_NAME}.log"
+LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
+PASSED_ENV_VARS="${CWD}/.installation_part1.env"
+FUNCTIONS="${CWD}/functions.sh"
 
-if [ -f .installation.env ]; then
-    # shellcheck disable=1091
-    source .installation.env
+if [ -f "${PASSED_ENV_VARS}" ]; then
+    source "${PASSED_ENV_VARS}"
 fi
 
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
-if ! source ./functions.sh; then
-    echo "Error! Could not source functions.sh"
+if ! source "${FUNCTIONS}"; then
+    echo "Error! Could not source ${FUNCTIONS}"
     exit 1
 fi
 
@@ -73,7 +76,7 @@ function configuring_pacman(){
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
 
-    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation.env
+    echo PASSED_CONFIGURING_PACMAN="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Selecting the disk to install on
@@ -129,7 +132,7 @@ function partitioning() {
 
     log_ok "DONE"
 
-    echo PASSED_PARTITIONING="PASSED" >> .installation.env
+    echo PASSED_PARTITIONING="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 
@@ -139,15 +142,14 @@ function formatting() {
 
     PARTITIONS="$(blkid --output device | grep "${DISK}" | sort)"
 
-    if [[ "${MODE}" == "UEFI" ]]; then
+    if [[ "${MODE}" = "UEFI" ]]; then
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
-        # Fat32 filesystem
         exit_on_error mkfs.vfat -F32 "${BOOT_P}"
 
         SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
         HOME_P="$(echo "${PARTITIONS}" | sed -n '4p')"
-    elif [[ "${MODE}" == "BIOS" ]]; then 
+    elif [[ "${MODE}" = "BIOS" ]]; then 
         ROOT_P=$(echo "${PARTITIONS}" | sed -n '1p')
         SWAP_P=$(echo "${PARTITIONS}" | sed -n '2p')
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
@@ -160,7 +162,7 @@ function formatting() {
 
     log_ok "DONE"
 
-    echo PASSED_FORMATTING="PASSED" >> .installation.env
+    echo PASSED_FORMATTING="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Mounting partitons
@@ -172,13 +174,13 @@ function mounting() {
         mkdir --parents /mnt/home && \
         mount "${HOME_P}" /mnt/home
 
-    [[ "${MODE}" == "UEFI" ]] && \
+    [[ "${MODE}" = "UEFI" ]] && \
         exit_on_error mkdir --parents /mnt/boot && \
             mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
 
-    echo PASSED_MOUNTING="PASSED" >> .installation.env
+    echo PASSED_MOUNTING="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Installing packages
@@ -190,7 +192,7 @@ function install_core_packages(){
 
     log_ok "DONE"
 
-    echo PASSED_INSTALL_PACKAGES="PASSED" >> .installation.env
+    echo PASSED_INSTALL_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Generating fstab
@@ -201,37 +203,34 @@ function generate_fstab(){
 
     log_ok "DONE"
 
-    echo PASSED_GENERATE_FSTAB="PASSED" >> .installation.env
+    echo PASSED_GENERATE_FSTAB="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Enter the new environment
 function enter_environment() {
-    log_info "Copying the second installation part to new environment"
+    log_info "Copying all information to installation disk"
 
-    exit_on_error chmod +x installation_part2.sh && \
-        cp -a installation_part2.sh /mnt && \
-        cp -a installation_part1.sh.log /mnt && \
-        cp -a functions.sh /mnt && \
-        cp -a log_functions.sh /mnt
+    TEMP_DIR="$(mktemp --directory --dry-run)"
+    mkdir "/mnt${TEMP_DIR}"
+
+    exit_on_error cp -r . "${TEMP_DIR}"
 
     log_ok "DONE"
 
-    log_info "Entering the new environment"
+    log_info "Entering new environment"
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    exit_on_error arch-chroot /mnt /bin/bash "/installation_part2.sh" "${MODE}" "${DISK}"
+    exit_on_error arch-chroot /mnt /bin/bash "${TEMP_DIR}/installation_part2.sh" "${MODE}" "${DISK}"
 }
 
 # MAIN
 function main() {
-    touch .installation.env
+    touch "${PASSED_ENV_VARS}"
 	check_internet
-	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
-
     # Check if variable DISK is set or not: https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
+	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
 	[ -z "${DISK+x}" ] && disks
-
     [ -z "${PASSED_PARTITIONING+x}" ] && partitioning
     [ -z "${PASSED_FORMATTING+x}" ] && formatting
     [ -z "${PASSED_MOUNTING+x}" ] && mounting
@@ -262,10 +261,10 @@ while [[ ! $# -eq 0 ]]; do
         -c | --clean)
             log_info "Starting cleaning"
 
-            rm /mnt/.installation.env
+            rm -rf "/mnt${TEMP_DIR}"
             umount --recursive /mnt
             swapoff "${SWAP_P}"
-            rm .installation.env
+            rm "${PASSED_ENV_VARS}"
 
             log_ok "DONE"
             exit 0
