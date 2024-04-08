@@ -193,7 +193,7 @@ function install_core_packages(){
 
     log_ok "DONE"
 
-    echo PASSED_INSTALL_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
+    echo PASSED_INSTALL_CORE_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Generating fstab
