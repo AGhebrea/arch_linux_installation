@@ -216,7 +216,7 @@ function enter_environment() {
     TEMP_DIR="$(mktemp --directory --dry-run)"
     mkdir "/mnt${TEMP_DIR}"
 
-    exit_on_error cp -r . "${TEMP_DIR}"
+    exit_on_error cp -r . "/mnt${TEMP_DIR}"
 
     log_ok "DONE"
 
