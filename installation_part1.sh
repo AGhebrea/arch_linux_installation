@@ -216,7 +216,7 @@ function enter_environment() {
     TEMP_DIR="temp_install_dir"
     mkdir --parents "/mnt/${TEMP_DIR}"
 
-    exit_on_error cp --archive --recursive "${CWD}/*" "${TEMP_DIR}"
+    exit_on_error cp --archive --recursive "${CWD}/*" "/mnt/${TEMP_DIR}"
 
     log_ok "DONE"
 
