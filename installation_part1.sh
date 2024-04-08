@@ -7,6 +7,8 @@ LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
 PASSED_ENV_VARS="${CWD}/.installation_part1.env"
 FUNCTIONS="${CWD}/functions.sh"
 
+export SWAP_P=""
+
 if [ -f "${PASSED_ENV_VARS}" ]; then
     source "${PASSED_ENV_VARS}"
 fi
@@ -147,12 +149,12 @@ function formatting() {
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
         exit_on_error mkfs.vfat -F32 "${BOOT_P}"
 
-        export SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
+        SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
         HOME_P="$(echo "${PARTITIONS}" | sed -n '4p')"
     elif [[ "${MODE}" = "BIOS" ]]; then 
         ROOT_P=$(echo "${PARTITIONS}" | sed -n '1p')
-        export SWAP_P=$(echo "${PARTITIONS}" | sed -n '2p')
+        SWAP_P=$(echo "${PARTITIONS}" | sed -n '2p')
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
     fi
 
