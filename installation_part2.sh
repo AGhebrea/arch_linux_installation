@@ -266,7 +266,7 @@ function main(){
     [ -z "${PASSED_YAY_INSTALL+x}" ] && yay_install
     [ -z "${PASSED_APPLY_CONFIGURATION+x}" ] && apply_configuration
 
-    if [ -n "${DESKTOP}" ] && [ -n "${DE}" ]; then
+    if [ -n "${DESKTOP}" ] && [ "${DESKTOP}" = "yes" ] && [ -n "${DE}" ]; then
         [ -z "${PASSED_INSTALL_ADDITIONAL_PACKAGES+x}" ] && install_additional_packages
         [ -z "${PASSED_CONFIGURE_ADDITIONAL_PACKAGES+x}" ] && configure_additional_packages
     fi
