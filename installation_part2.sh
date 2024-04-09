@@ -213,7 +213,7 @@ function apply_configuration() {
     sudo -u "${NAME}" cp --recursive "/home/${NAME}/git_clone/".* "/home/${NAME}/"
 
     log_info "Removing clone repository"
-    rm -rf "/home/${NAME}/git_clone/*"
+    rm -rf "/home/${NAME}/git_clone/"
     rm -rf "/home/${NAME}/.git"
 
     if [[ "${DE}" != "i3" ]]; then
