@@ -202,8 +202,13 @@ function yay_install() {
 function apply_configuration() {
     log_info "Downloading and applying new configuration"
 
-	exit_on_error sudo -u "${NAME}" git -C "/home/${NAME}/" clone --depth 1 --single-branch \
-		--no-tags -q "https://github.com/arghpy/dotfiles" .
+    mkdir --parents "/home/${NAME}/git_clone"
+	exit_on_error sudo -u "${NAME}" git -C "/home/${NAME}/git_clone/" clone --depth 1 --single-branch \
+		--no-tags -q "https://github.com/arghpy/dotfiles" "/home/${NAME}/git_clone/"
+
+    exit_on_error cp "/home/${NAME}/git_clone/*" "/home/${NAME}/" && \
+        cp "/home/${NAME}/git_clone/.*" "/home/${NAME}/" && \
+        rm -rf "/home/${NAME}/git_clone/*"
 
     if ! [[ "${DE}" = "i3" ]]; then
         rm -rf "/home/${NAME}/.config/i3*"
