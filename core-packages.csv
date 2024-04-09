@@ -1,8 +1,8 @@
 archlinux-keyring,repo,Install keyring
 linux,repo,Linux Kernel
 linux-firmware,repo,Firmware for different components
-base,repo,The base packages for having a minimal functioning linux system
-base-devel,repo,The base packages for having a minimal functioning linux system
+base,repo,The base packages
+base-devel,repo,The base-devel packages
 wget,repo,command-line utility for downloading files from the web
 vim,repo,Powerful keyboard based editor
 sudo,repo,manages admin rights
@@ -10,3 +10,4 @@ openssh,repo,SSH server
 polkit,repo,Manages user policies
 networkmanager,repo,Network Manager
 arch-install-scripts,repo,Installing scripts
+git,repo,SCV Software

@@ -48,6 +48,14 @@ function configuring_pacman(){
 	exit_on_error pacman --noconfirm --sync --refresh
     log_ok "DONE"
 
+    log_info "Initializing key"
+	exit_on_error pacman-key --init
+    log_ok "DONE"
+
+    log_info "Refreshing keys"
+	exit_on_error pacman-key --refresh-keys
+    log_ok "DONE"
+
     log_info "Installing the keyring"
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
@@ -191,7 +199,7 @@ function apply_configuration() {
     log_info "Downloading and applying new configuration"
 
 	exit_on_error sudo -u "${NAME}" git -C "/home/${NAME}/" clone --depth 1 --single-branch \
-		--no-tags -q "https://github.com/arghpy/dotfiles" "/home/${NAME}/"
+		--no-tags -q "https://github.com/arghpy/dotfiles" .
 
     if ! [[ "${DE}" = "i3" ]]; then
         rm -rf "/home/${NAME}/.config/i3*"
