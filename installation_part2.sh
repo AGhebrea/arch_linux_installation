@@ -213,11 +213,12 @@ function apply_configuration() {
     popd || exit 1
 
     log_info "Copying in home..."
-    sudo -u "${NAME}" cp "/home/${NAME}/git_clone/*" "/home/${NAME}/"
-    sudo -u "${NAME}" cp "/home/${NAME}/git_clone/.*" "/home/${NAME}/"
+    sudo -u "${NAME}" cp --recursive "/home/${NAME}/git_clone/*" "/home/${NAME}/"
+    sudo -u "${NAME}" cp --recursive "/home/${NAME}/git_clone/.*" "/home/${NAME}/"
 
     log_info "Removing git clone..."
     rm -rf "/home/${NAME}/git_clone/*"
+    rm -rf "/home/${NAME}/.git"
 
     if ! [[ "${DE}" = "i3" ]]; then
         rm -rf "/home/${NAME}/.config/i3*"
