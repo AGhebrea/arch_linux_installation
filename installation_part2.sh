@@ -75,6 +75,10 @@ function set_time(){
 function change_language(){
     log_info "Setting up language"
 
+    if [ -z "${LANG}" ]; then
+        LANG="en_US.UTF-8"
+    fi
+
     sed --in-place "/${LANG}/s|^#||" /etc/locale.gen
     echo "LANG=${LANG}" > /etc/locale.conf
     locale-gen
@@ -85,9 +89,13 @@ function change_language(){
 
 # Setting the hostname
 function set_hostname(){
-    log_info "Setting hostname to archlinux"
+    log_info "Setting hostname to ${HOSTNAME}"
 
-	echo "${HOSTNAME}" > /etc/hostname
+    if [ -z "${HOSTNAME}" ]; then
+        HOSTNAME="archlinux"
+    fi
+
+    echo "${HOSTNAME}" > /etc/hostname
 
     echo PASSED_SET_HOSTNAME="PASSED" >> "${PASSED_ENV_VARS}"
     log_ok "DONE"
