@@ -253,6 +253,9 @@ function main(){
 
     log_ok "DONE"
     exec 1>&3 2>&4
+
+    popd || exit 1
+    rm -rf "${TEMP_DIR}"
 }
 
 main

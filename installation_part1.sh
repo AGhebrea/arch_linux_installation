@@ -216,10 +216,10 @@ function generate_fstab(){
 function enter_environment() {
     log_info "Copying all information to installation disk"
 
-    TEMP_DIR="$(mktemp --directory --dry-run --tmpdir=/mnt/tmp)"
-    mkdir --parents "${TEMP_DIR}"
+    TEMP_DIR="temp_install_dir"
+    mkdir --parents "/mnt/${TEMP_DIR}"
 
-    exit_on_error cp --archive --recursive "${CWD}/*" "${TEMP_DIR}"
+    exit_on_error cp --archive "${CWD}/*" "/mnt/${TEMP_DIR}/"
 
     log_ok "DONE"
 
