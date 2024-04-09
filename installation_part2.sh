@@ -209,7 +209,7 @@ function apply_configuration() {
 
     sudo -u "${NAME}" mkdir --parents "/home/${NAME}/git_clone"
     pushd "/home/${NAME}/git_clone" || exit 1
-	exit_on_error sudo -u "${NAME}" git clone https://github.com/arghpy/dotfiles
+	exit_on_error sudo -u "${NAME}" git clone https://github.com/arghpy/dotfiles .
     popd || exit 1
 
     log_info "Copying in home..."
@@ -282,7 +282,6 @@ function main(){
 
     popd || exit 1
     rm -rf "${TEMP_DIR}"
-
 
     # Enable signature checking
     sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel    = Required DatabaseOptional|g" "${CONF_FILE}"
