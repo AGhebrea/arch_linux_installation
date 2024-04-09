@@ -14,3 +14,4 @@ git,repo,SCV Software
 unzip,repo,Archive tool
 python-pip,repo,Management tool for python libraries
 bash-completion,repo,Bash completion
+htop,repo,Modern top utility
