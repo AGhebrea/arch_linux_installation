@@ -239,13 +239,16 @@ function configure_additional_packages() {
     log_info "Configuring additional packages"
 
     if [[ "${DE}" = "i3" ]]; then
-       log_info "Configuring lightdm" 
+        log_info "Configuring lightdm" 
 
-       mkdir -p /etc/lightdm/lightdm.conf.d
-       sed "s|user_account|${NAME}|g" 99-switch-monitor.conf > /etc/lightdm/lightdm.conf.d/99-switch-display.conf
-       exit_on_error systemctl enable lightdm
+        mkdir -p /etc/lightdm/lightdm.conf.d
+        sed "s|user_account|${NAME}|g" 99-switch-monitor.conf > /etc/lightdm/lightdm.conf.d/99-switch-display.conf
+        exit_on_error systemctl enable lightdm
 
-       log_ok "DONE"
+        log_ok "DONE"
+    elif [[ "${DE}" = "gnome" ]]; then
+        log_info "Enabling gdm service for gnome"
+        exit_on_error systemctl enable gdm
     fi
 
     echo PASSED_CONFIGURE_ADDITONAL_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
