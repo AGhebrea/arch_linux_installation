@@ -2,6 +2,7 @@ archlinux-keyring,repo,Install keyring
 linux,repo,Linux Kernel
 linux-firmware,repo,Firmware for different components
 base,repo,The base packages for having a minimal functioning linux system
+base-devel,repo,The base packages for having a minimal functioning linux system
 wget,repo,command-line utility for downloading files from the web
 vim,repo,Powerful keyboard based editor
 sudo,repo,manages admin rights
