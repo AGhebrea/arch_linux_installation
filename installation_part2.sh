@@ -206,7 +206,7 @@ function apply_configuration() {
 
     mkdir --parents "/home/${NAME}/git_clone"
 	exit_on_error sudo -u "${NAME}" git -C "/home/${NAME}/git_clone/" clone --depth 1 --single-branch \
-		--no-tags -q "https://github.com/arghpy/dotfiles" "/home/${NAME}/git_clone/"
+		--no-tags -q "https://github.com/arghpy/dotfiles"
 
     log_info "Copying in home..."
     cp "/home/${NAME}/git_clone/*" "/home/${NAME}/"
