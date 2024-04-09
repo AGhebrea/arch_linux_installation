@@ -208,8 +208,11 @@ function apply_configuration() {
 	exit_on_error sudo -u "${NAME}" git -C "/home/${NAME}/git_clone/" clone --depth 1 --single-branch \
 		--no-tags -q "https://github.com/arghpy/dotfiles" "/home/${NAME}/git_clone/"
 
+    log_info "Copying in home..."
     cp "/home/${NAME}/git_clone/*" "/home/${NAME}/"
     cp "/home/${NAME}/git_clone/.*" "/home/${NAME}/"
+
+    log_info "Removing git clone..."
     rm -rf "/home/${NAME}/git_clone/*"
 
     if ! [[ "${DE}" = "i3" ]]; then
