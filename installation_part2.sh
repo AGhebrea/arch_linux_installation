@@ -285,8 +285,7 @@ function main(){
 
 
     # Enable signature checking
-    sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel    = Required DatabaseOptional
-|g" "${CONF_FILE}"
+    sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel    = Required DatabaseOptional|g" "${CONF_FILE}"
 }
 
 main
