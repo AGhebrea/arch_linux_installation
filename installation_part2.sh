@@ -204,14 +204,14 @@ function yay_install() {
 function apply_configuration() {
     log_info "Downloading and applying new configuration"
 
-    mkdir --parents "/home/${NAME}/git_clone"
+    sudo -u "${NAME}" mkdir --parents "/home/${NAME}/git_clone"
     pushd "/home/${NAME}/git_clone" || exit 1
 	exit_on_error sudo -u "${NAME}" git clone https://github.com/arghpy/dotfiles
     popd || exit 1
 
     log_info "Copying in home..."
-    cp "/home/${NAME}/git_clone/*" "/home/${NAME}/"
-    cp "/home/${NAME}/git_clone/.*" "/home/${NAME}/"
+    sudo -u "${NAME}" cp "/home/${NAME}/git_clone/*" "/home/${NAME}/"
+    sudo -u "${NAME}" cp "/home/${NAME}/git_clone/.*" "/home/${NAME}/"
 
     log_info "Removing git clone..."
     rm -rf "/home/${NAME}/git_clone/*"
