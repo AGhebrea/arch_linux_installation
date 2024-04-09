@@ -195,7 +195,6 @@ function install_core_packages(){
 
     # shellcheck disable=SC2046
 	exit_on_error pacstrap -K /mnt $(awk -F ',' '{printf "%s ", $1}' core-packages.csv)
-    exit_on_error pacstrap -K /mnt archlinux-keyring
 
     log_ok "DONE"
 

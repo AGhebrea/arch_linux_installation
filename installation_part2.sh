@@ -42,6 +42,8 @@ function configuring_pacman(){
     CONF_FILE="/etc/pacman.conf"
 
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
+    # Disable signature checking because it keeps failing for some unknown reason
+    sed --in-place '/SigLevel/ s|^|^#|g' "${CONF_FILE}"
     log_ok "DONE"
 
     log_info "Refreshing gpg keys"
@@ -273,6 +275,10 @@ function main(){
 
     popd || exit 1
     rm -rf "${TEMP_DIR}"
+
+
+    # Enable signature checking
+    sed --in-place '/SigLevel/ s|^#||g' "${CONF_FILE}"
 }
 
 main
