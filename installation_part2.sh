@@ -59,8 +59,13 @@ function configuring_pacman(){
 function set_time(){
     log_info "Setting up time"
 
-    exit_on_error ln --symbolic --force "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime && \
-        hwclock --systohc
+    if [ -n "${TIMEZONE}" ] && [ -f "/usr/share/zoneinfo/${TIMEZONE}" ]; then
+        exit_on_error ln --symbolic --force "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime && \
+            hwclock --systohc
+    else
+        exit_on_error ln --symbolic --force "/usr/share/zoneinfo/Europe/Bucharest" /etc/localtime && \
+            hwclock --systohc
+    fi
 
     echo PASSED_SET_TIME="PASSED" >> "${PASSED_ENV_VARS}"
     log_ok "DONE"
@@ -148,7 +153,7 @@ function grub_configuration() {
 
 # Enabling services
 function enable_services(){
-    log_info "Enabling NetworkManager, earlyoom and sshd"
+    log_info "Enabling NetworkManager and sshd"
 
     exit_on_error systemctl enable NetworkManager && \
         systemctl enable sshd
@@ -176,9 +181,11 @@ function yay_install() {
 	exit_on_error sudo -u "${NAME}" makepkg --noconfirm -si || return 1
     popd || exit 1
 
-    log_info "Installing AUR packages"
     # shellcheck disable=2046
-	exit_on_error sudo -u "${NAME}" yay --noconfirm -S $(awk -F ',' '/AUR/ {printf "%s ", $1}' "${DE}-packages.csv")
+    if [ -n "${DE}" ] && grep --quiet 'AUR' "${DE}-packages.csv"; then
+        log_info "Installing AUR packages"
+        exit_on_error sudo -u "${NAME}" yay --noconfirm -S $(awk -F ',' '/AUR/ {printf "%s ", $1}' "${DE}-packages.csv")
+    fi
 
     echo PASSED_YAY_INSTALL="PASSED" >> "${PASSED_ENV_VARS}"
     log_ok "DONE"
@@ -250,13 +257,17 @@ function main(){
     [ -z "${PASSED_ENABLE_SERVICES+x}" ] && enable_services
     [ -z "${PASSED_YAY_INSTALL+x}" ] && yay_install
     [ -z "${PASSED_APPLY_CONFIGURATION+x}" ] && apply_configuration
-    [ -z "${PASSED_INSTALL_ADDITIONAL_PACKAGES+x}" ] && install_additional_packages
-    [ -z "${PASSED_CONFIGURE_ADDITIONAL_PACKAGES+x}" ] && configure_additional_packages
+
+    if [ -n "${DESKTOP}" ] && [ -n "${DE}" ]; then
+        [ -z "${PASSED_INSTALL_ADDITIONAL_PACKAGES+x}" ] && install_additional_packages
+        [ -z "${PASSED_CONFIGURE_ADDITIONAL_PACKAGES+x}" ] && configure_additional_packages
+    fi
 
     log_ok "DONE"
     exec 1>&3 2>&4
 
     popd || exit 1
+    log_info "Removing installation scripts"
     rm -rf "${TEMP_DIR}"
 
     log_info "Re-enabling signature checking"
