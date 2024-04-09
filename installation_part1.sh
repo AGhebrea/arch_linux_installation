@@ -1,27 +1,62 @@
 #!/usr/bin/env bash
+# shellcheck disable=1090
 
-LOG_FILE="$(basename "${0}")"
-LOG_FILE="${LOG_FILE}.log"
+CWD="$(pwd)"
+SCRIPT_NAME="$(basename "${0}")"
+LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
+PASSED_ENV_VARS="${CWD}/.installation_part1.env"
+FUNCTIONS="${CWD}/functions.sh"
 
-if [ -f .installation.env ]; then
-    source .installation.env
+if [ -f "${PASSED_ENV_VARS}" ]; then
+    source "${PASSED_ENV_VARS}"
 fi
 
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
-if ! source ./functions.sh; then
-    echo "Error! Could not source functions.sh"
+if ! source "${FUNCTIONS}"; then
+    echo "Error! Could not source ${FUNCTIONS}"
     exit 1
 fi
+
+function usage() {
+    cat << EOF
+
+Usage: ./${SCRIPT_NAME} [OPTIONS [ARGS]]
+
+DESCRIPTION:
+    This is a bash script used for installing Arch Linux.
+    Available installation types:
+        - server
+        - desktop:
+            * i3 (DE)
+            * Gnome (DE)
+            * list_of_DEs
+
+OPTIONS:
+    -h, --help
+        Show this help message
+
+    -l, --list
+        List available disks
+
+    -c, --clean
+        Clean the environment for a fresh usage of the script
+
+    -d, --disk DISK
+        Provide disk for installation
+        Example:
+        ./${SCRIPT_NAME} --disk sda
+
+EOF
+}
 
 # Check for internet
 function check_internet() {
     log_info "Check Internet"
 	if ! ping -c1 -w1 8.8.8.8 > /dev/null 2>&1; then
         log_info "Visit https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking"
-        log_info "Optionally use 'links https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking'"
         log_error "No Internet Connection" && exit 1
     else
         log_ok "Connected to internet"
@@ -40,11 +75,15 @@ function configuring_pacman(){
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
     log_ok "DONE"
 
+    log_info "Refreshing sources"
+	exit_on_error pacman --noconfirm --sync --refresh
+    log_ok "DONE"
+
     log_info "Installing the keyring"
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
 
-    echo PASSED_CONFIGURING_PACMAN="PASSED" >> .installation.env
+    echo PASSED_CONFIGURING_PACMAN="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Selecting the disk to install on
@@ -55,6 +94,9 @@ function disks() {
     ANSWER=""
 
     log_warning "From this point there is no going back! Proceed with caution."
+    log_info "Available disks:"
+    lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
+    log_ok "DONE"
     log_info "Disk chosen: ${DISK}"
 
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
@@ -99,8 +141,6 @@ function partitioning() {
     fi
 
     log_ok "DONE"
-
-    echo PASSED_PARTITIONING="PASSED" >> .installation.env
 }
 
 
@@ -110,15 +150,14 @@ function formatting() {
 
     PARTITIONS="$(blkid --output device | grep "${DISK}" | sort)"
 
-    if [[ "${MODE}" == "UEFI" ]]; then
+    if [[ "${MODE}" = "UEFI" ]]; then
         BOOT_P="$(echo "${PARTITIONS}" | sed -n '1p')"
-        # Fat32 filesystem
         exit_on_error mkfs.vfat -F32 "${BOOT_P}"
 
         SWAP_P="$(echo "${PARTITIONS}" | sed -n '2p')"
         ROOT_P="$(echo "${PARTITIONS}" | sed -n '3p')"
         HOME_P="$(echo "${PARTITIONS}" | sed -n '4p')"
-    elif [[ "${MODE}" == "BIOS" ]]; then 
+    elif [[ "${MODE}" = "BIOS" ]]; then 
         ROOT_P=$(echo "${PARTITIONS}" | sed -n '1p')
         SWAP_P=$(echo "${PARTITIONS}" | sed -n '2p')
         HOME_P=$(echo "${PARTITIONS}" | sed -n '3p')
@@ -131,7 +170,8 @@ function formatting() {
 
     log_ok "DONE"
 
-    echo PASSED_FORMATTING="PASSED" >> .installation.env
+    echo PASSED_FORMATTING="PASSED" >> "${PASSED_ENV_VARS}"
+    echo SWAP_P="${SWAP_P}" >> "${PASSED_ENV_VARS}"
 }
 
 # Mounting partitons
@@ -143,25 +183,25 @@ function mounting() {
         mkdir --parents /mnt/home && \
         mount "${HOME_P}" /mnt/home
 
-    [[ "${MODE}" == "UEFI" ]] && \
+    [[ "${MODE}" = "UEFI" ]] && \
         exit_on_error mkdir --parents /mnt/boot && \
             mount "${BOOT_P}" /mnt/boot
 
     log_ok "DONE"
 
-    echo PASSED_MOUNTING="PASSED" >> .installation.env
+    echo PASSED_MOUNTING="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Installing packages
-function install_packages(){
+function install_core_packages(){
     log_info "Installing packages on the new system"
 
     # shellcheck disable=SC2046
-	exit_on_error pacstrap -K /mnt $(tail packages.csv -n +2 | awk -F ',' '{print $1}' | paste -sd' ')
+	exit_on_error pacstrap -K /mnt $(awk -F ',' '{printf "%s ", $1}' core-packages.csv)
 
     log_ok "DONE"
 
-    echo PASSED_INSTALL_PACKAGES="PASSED" >> .installation.env
+    echo PASSED_INSTALL_CORE_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Generating fstab
@@ -172,76 +212,44 @@ function generate_fstab(){
 
     log_ok "DONE"
 
-    echo PASSED_GENERATE_FSTAB="PASSED" >> .installation.env
+    echo PASSED_GENERATE_FSTAB="PASSED" >> "${PASSED_ENV_VARS}"
 }
 
 # Enter the new environment
 function enter_environment() {
-    log_info "Copying the second installation part to new environment"
+    log_info "Copying all information to installation disk"
 
-    exit_on_error chmod +x installation_part2.sh && \
-        cp -a installation_part2.sh /mnt && \
-        cp -a installation_part1.sh.log /mnt && \
-        cp -a functions.sh /mnt && \
-        cp -a log_functions.sh /mnt
+    TEMP_DIR="temp_install_dir"
+    mkdir --parents "/mnt/${TEMP_DIR}"
+
+    exit_on_error cp --archive "${CWD}/*" "/mnt/${TEMP_DIR}/"
 
     log_ok "DONE"
 
-    log_info "Entering the new environment"
+    log_info "Entering new environment"
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    exit_on_error arch-chroot /mnt /bin/bash "/installation_part2.sh" "${MODE}" "${DISK}"
+    exit_on_error arch-chroot /mnt /bin/bash "${TEMP_DIR}/installation_part2.sh" "${MODE}" "${DISK}"
 }
 
 # MAIN
 function main() {
-    touch .installation.env
+    touch "${PASSED_ENV_VARS}"
 	check_internet
-	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
-
     # Check if variable DISK is set or not: https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
+	[ -z "${PASSED_CONFIGURING_PACMAN+x}" ] && configuring_pacman
 	[ -z "${DISK+x}" ] && disks
-
-    [ -z "${PASSED_PARTITIONING+x}" ] && partitioning
+    partitioning
     [ -z "${PASSED_FORMATTING+x}" ] && formatting
     [ -z "${PASSED_MOUNTING+x}" ] && mounting
-    [ -z "${PASSED_INSTALL_PACKAGES+x}" ] && install_packages
+    [ -z "${PASSED_INSTALL_CORE_PACKAGES+x}" ] && install_core_packages
     [ -z "${PASSED_GENERATE_FSTAB+x}" ] && generate_fstab
     enter_environment
 
     log_info "Rebooting..."
     sleep 3
     reboot
-}
-
-function usage() {
-    cat << EOF
-
-Usage: ./$(basename "${0}") [OPTIONS [ARGS]]
-
-DESCRIPTION:
-    This is a bash script used for installing Arch Linux.
-    Available installation types:
-        - server
-        - desktop:
-            * i3 (DE)
-            * Gnome (DE)
-            * list_of_DEs
-
-OPTIONS:
-    -h, --help
-        Show this help message
-
-    -l, --list
-        List available disks
-
-    -d, --disk DISK
-        Provide disk for installation
-        Example:
-        ./$(basename "${0}") --disk sda
-
-EOF
 }
 
 # Gather options
@@ -255,6 +263,17 @@ while [[ ! $# -eq 0 ]]; do
         -l | --list)
             log_info "Listing disks"
             lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
+            log_ok "DONE"
+            exit 0
+            ;;
+
+        -c | --clean)
+            log_info "Starting cleaning"
+
+            umount --recursive /mnt
+            swapoff "${SWAP_P}"
+            rm "${PASSED_ENV_VARS}"
+
             log_ok "DONE"
             exit 0
             ;;
