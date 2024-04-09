@@ -7,17 +7,19 @@ LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
 PASSED_ENV_VARS="${CWD}/.installation_part1.env"
 FUNCTIONS="${CWD}/functions.sh"
 
-if [ -f "${PASSED_ENV_VARS}" ]; then
-    source "${PASSED_ENV_VARS}"
-fi
-
-# Logging the entire script
+# Logging the entire script and also outputing to terminal
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
+# Sourcing functions, which also sources log_functions.sh
 if ! source "${FUNCTIONS}"; then
     echo "Error! Could not source ${FUNCTIONS}"
     exit 1
+fi
+
+if [ -f "${PASSED_ENV_VARS}" ]; then
+    source "${PASSED_ENV_VARS}"
+    log_info "Sourced variables from last installation"
 fi
 
 function usage() {
@@ -27,12 +29,7 @@ Usage: ./${SCRIPT_NAME} [OPTIONS [ARGS]]
 
 DESCRIPTION:
     This is a bash script used for installing Arch Linux.
-    Available installation types:
-        - server
-        - desktop:
-            * i3 (DE)
-            * Gnome (DE)
-            * list_of_DEs
+    Configure installation_config.conf for configuring the installation.
 
 OPTIONS:
     -h, --help
@@ -58,9 +55,9 @@ function check_internet() {
 	if ! ping -c1 -w1 8.8.8.8 > /dev/null 2>&1; then
         log_info "Visit https://wiki.arch.org/wiki/Handbook:AMD64/Installation/Networking"
         log_error "No Internet Connection" && exit 1
-    else
-        log_ok "Connected to internet"
 	fi
+
+    log_ok "Connected to internet"
 }
 
 # Initializing keys and setting pacman
@@ -72,18 +69,17 @@ function configuring_pacman(){
 
     CONF_FILE="/etc/pacman.conf"
 
+    log_info "Configuring pacman to use up to ${CORES} parallel downloads"
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
-    log_ok "DONE"
 
     log_info "Refreshing sources"
 	exit_on_error pacman --noconfirm --sync --refresh
-    log_ok "DONE"
 
     log_info "Installing the keyring"
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
-    log_ok "DONE"
 
     echo PASSED_CONFIGURING_PACMAN="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Selecting the disk to install on
@@ -96,7 +92,7 @@ function disks() {
     log_warning "From this point there is no going back! Proceed with caution."
     log_info "Available disks:"
     lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
-    log_ok "DONE"
+
     log_info "Disk chosen: ${DISK}"
 
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
@@ -116,8 +112,8 @@ function disks() {
 # Creating partitions
 function partitioning() {
     log_info "Partitioning disk"
-    log_info "Wiping the data on disk ${DISK}"
 
+    log_info "Wiping the data on disk ${DISK}"
     exit_on_error wipefs --all "/dev/${DISK}"
 
     if [[ -n $(ls /sys/firmware/efi/efivars 2>/dev/null) ]];then
@@ -143,7 +139,6 @@ function partitioning() {
     log_ok "DONE"
 }
 
-
 # Formatting partitions
 function formatting() {
     log_info "Formatting partitions"
@@ -168,10 +163,9 @@ function formatting() {
         mkfs.ext4 -F "${HOME_P}" && \
         mkfs.ext4 -F "${ROOT_P}"
 
-    log_ok "DONE"
-
     echo PASSED_FORMATTING="PASSED" >> "${PASSED_ENV_VARS}"
     echo SWAP_P="${SWAP_P}" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Mounting partitons
@@ -187,9 +181,8 @@ function mounting() {
         exit_on_error mkdir --parents /mnt/boot && \
             mount "${BOOT_P}" /mnt/boot
 
-    log_ok "DONE"
-
     echo PASSED_MOUNTING="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Installing packages
@@ -199,9 +192,8 @@ function install_core_packages(){
     # shellcheck disable=SC2046
 	exit_on_error pacstrap -K /mnt $(awk -F ',' '{printf "%s ", $1}' core-packages.csv)
 
-    log_ok "DONE"
-
     echo PASSED_INSTALL_CORE_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Generating fstab
@@ -210,9 +202,8 @@ function generate_fstab(){
 
     exit_on_error genfstab -U /mnt >> /mnt/etc/fstab
 
-    log_ok "DONE"
-
     echo PASSED_GENERATE_FSTAB="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Enter the new environment
@@ -222,11 +213,10 @@ function enter_environment() {
     TEMP_DIR="temp_install_dir"
     mkdir --parents "/mnt/${TEMP_DIR}"
 
+    log_info "Copying all scripts to new environment"
     exit_on_error cp --archive "${CWD}/*" "/mnt/${TEMP_DIR}/"
 
-    log_ok "DONE"
-
-    log_info "Entering new environment"
+    log_info "(STAGE 2) Entering new environment"
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
@@ -235,6 +225,7 @@ function enter_environment() {
 
 # MAIN
 function main() {
+    log_info "(STAGE 1) Preparing the new installation"
     touch "${PASSED_ENV_VARS}"
 	check_internet
     # Check if variable DISK is set or not: https://stackoverflow.com/questions/3601515/how-to-check-if-a-variable-is-set-in-bash
@@ -247,7 +238,9 @@ function main() {
     [ -z "${PASSED_GENERATE_FSTAB+x}" ] && generate_fstab
     enter_environment
 
-    log_info "Rebooting..."
+    log_info "Take out the USB stick after rebooting is finished"
+    log_info "Or opt to boot from the hard disk"
+    log_info "Rebooting"
     sleep 3
     reboot
 }
