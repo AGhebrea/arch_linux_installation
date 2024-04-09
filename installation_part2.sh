@@ -44,16 +44,16 @@ function configuring_pacman(){
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
     log_ok "DONE"
 
-    log_info "Refreshing sources"
-	exit_on_error pacman --noconfirm --sync --refresh
-    log_ok "DONE"
-
     log_info "Initializing key"
 	exit_on_error pacman-key --init
     log_ok "DONE"
 
     log_info "Refreshing keys"
 	exit_on_error pacman-key --refresh-keys
+    log_ok "DONE"
+
+    log_info "Refreshing sources"
+	exit_on_error pacman --noconfirm --sync --refresh
     log_ok "DONE"
 
     log_info "Installing the keyring"
