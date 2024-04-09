@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=1090
 
-
-TEMP_DIR="temp_install_dir"
+TEMP_DIR="$(dirname "${0}")"
 SCRIPT_NAME="$(basename "${0}")"
 LOG_FILE="${TEMP_DIR}/${SCRIPT_NAME}.log"
 PASSED_ENV_VARS="${TEMP_DIR}/.installation_part2.env"
@@ -14,6 +13,8 @@ DISK="${2}"
 
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
+
+pushd "${TEMP_DIR}" || exit 1
 
 # Sourcing log functions
 if ! source "${FUNCTIONS}"; then
