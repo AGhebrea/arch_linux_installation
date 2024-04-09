@@ -79,6 +79,14 @@ function configuring_pacman(){
 	exit_on_error pacman --noconfirm --sync --refresh
     log_ok "DONE"
 
+    log_info "Initializing key"
+	exit_on_error pacman-key --init
+    log_ok "DONE"
+
+    log_info "Refreshing keys"
+	exit_on_error pacman-key --refresh-keys
+    log_ok "DONE"
+
     log_info "Installing the keyring"
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"

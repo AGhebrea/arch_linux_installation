@@ -1,3 +1,4 @@
+archlinux-keyring,repo,Install keyring
 linux,repo,Linux Kernel
 linux-firmware,repo,Firmware for different components
 base,repo,The base packages for having a minimal functioning linux system
@@ -8,4 +9,3 @@ openssh,repo,SSH server
 polkit,repo,Manages user policies
 networkmanager,repo,Network Manager
 arch-install-scripts,repo,Installing scripts
-archlinux-keyring,repo,Install keyring
