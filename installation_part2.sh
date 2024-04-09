@@ -41,7 +41,10 @@ function configuring_pacman(){
 
     CONF_FILE="/etc/pacman.conf"
 
+    log_info "Increasing number of parallel downloads to ${CORES}"
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
+
+    log_info "Disabling for the moment signature checking"
     # Disable signature checking because it keeps failing for some unknown reason
     sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel = Never|g" "${CONF_FILE}"
     log_ok "DONE"
