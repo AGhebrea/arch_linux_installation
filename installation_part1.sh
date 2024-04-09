@@ -75,6 +75,10 @@ function configuring_pacman(){
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
     log_ok "DONE"
 
+    log_info "Refreshing sources"
+	exit_on_error pacman --noconfirm --sync --refresh
+    log_ok "DONE"
+
     log_info "Installing the keyring"
 	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
     log_ok "DONE"
@@ -212,10 +216,10 @@ function generate_fstab(){
 function enter_environment() {
     log_info "Copying all information to installation disk"
 
-    TEMP_DIR="temp_install_dir"
-    mkdir --parents "/mnt/${TEMP_DIR}"
+    TEMP_DIR="$(mktemp --directory --dry-run --tmpdir=/mnt/tmp)"
+    mkdir --parents "${TEMP_DIR}"
 
-    exit_on_error cp --archive --recursive "${CWD}/*" "/mnt/${TEMP_DIR}"
+    exit_on_error cp --archive --recursive "${CWD}/*" "${TEMP_DIR}"
 
     log_ok "DONE"
 

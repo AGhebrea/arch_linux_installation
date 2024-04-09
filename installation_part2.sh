@@ -3,10 +3,10 @@
 
 TEMP_DIR="$(dirname "${0}")"
 SCRIPT_NAME="$(basename "${0}")"
-LOG_FILE="${TEMP_DIR}/${SCRIPT_NAME}.log"
-PASSED_ENV_VARS="${TEMP_DIR}/.installation_part2.env"
-FUNCTIONS="${TEMP_DIR}/functions.sh"
-CONFIG_FILE="${TEMP_DIR}/installation_config.sh"
+LOG_FILE="${SCRIPT_NAME}.log"
+PASSED_ENV_VARS=".installation_part2.env"
+FUNCTIONS="functions.sh"
+CONFIG_FILE="installation_config.sh"
 
 MODE="${1}"
 DISK="${2}"
@@ -42,6 +42,10 @@ function configuring_pacman(){
     CONF_FILE="/etc/pacman.conf"
 
     sed --regexp-extended --in-place "s|^#ParallelDownloads.*|ParallelDownloads = ${CORES}|g" "${CONF_FILE}" 
+    log_ok "DONE"
+
+    log_info "Refreshing sources"
+	exit_on_error pacman --noconfirm --sync --refresh
     log_ok "DONE"
 
     log_info "Installing the keyring"

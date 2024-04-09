@@ -8,3 +8,4 @@ openssh,repo,SSH server
 polkit,repo,Manages user policies
 networkmanager,repo,Network Manager
 arch-install-scripts,repo,Installing scripts
+archlinux-keyring,repo,Install keyring
