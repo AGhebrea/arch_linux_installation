@@ -94,6 +94,9 @@ function disks() {
     ANSWER=""
 
     log_warning "From this point there is no going back! Proceed with caution."
+    log_info "Available disks:"
+    lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
+    log_ok "DONE"
     log_info "Disk chosen: ${DISK}"
 
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
