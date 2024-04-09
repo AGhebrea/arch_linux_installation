@@ -34,3 +34,4 @@ neovim,repo,Terminal text editor
 npm,repo,NodeJS used in neovim
 ripgrep,repo,Tool used in neovim
 fd,repo,Tool used in neovim
+python-neovim,repo,Tool used in neovim
