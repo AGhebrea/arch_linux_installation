@@ -190,7 +190,7 @@ function yay_install() {
     popd || exit 1
 
     # shellcheck disable=2046
-    if [ "${DESKTOP}" = "yes" ] && [ -n "${DE}" ] && grep --quiet 'AUR' "${DE}-packages.csv"; then
+    if [[ "${DESKTOP}" = "yes" ]] && [ -n "${DE}" ] && grep --quiet 'AUR' "${DE}-packages.csv"; then
         log_info "Installing AUR packages"
         exit_on_error sudo -u "${NAME}" yay --noconfirm -S $(awk -F ',' '/AUR/ {printf "%s ", $1}' "${DE}-packages.csv")
     fi
