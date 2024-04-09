@@ -49,25 +49,25 @@ function configuring_pacman(){
     sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel = Never|g" "${CONF_FILE}"
     log_ok "DONE"
 
-    log_info "Refreshing gpg keys"
-	exit_on_error gpg --refresh-keys
-    log_ok "DONE"
-
-    log_info "Initializing key"
-	exit_on_error pacman-key --init
-    log_ok "DONE"
-
-    log_info "Refreshing keys"
-	exit_on_error pacman-key --refresh-keys
-    log_ok "DONE"
+ #    log_info "Refreshing gpg keys"
+	# exit_on_error gpg --refresh-keys
+ #    log_ok "DONE"
+	#
+ #    log_info "Initializing key"
+	# exit_on_error pacman-key --init
+ #    log_ok "DONE"
+	#
+ #    log_info "Refreshing keys"
+	# exit_on_error pacman-key --refresh-keys
+ #    log_ok "DONE"
 
     log_info "Refreshing sources"
 	exit_on_error pacman --noconfirm --sync --refresh
     log_ok "DONE"
 
-    log_info "Installing the keyring"
-	exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
-    log_ok "DONE"
+ #    log_info "Installing the keyring"
+	# exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
+ #    log_ok "DONE"
 
     echo PASSED_CONFIGURING_PACMAN="PASSED" >> "${PASSED_ENV_VARS}"
 }
