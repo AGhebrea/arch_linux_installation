@@ -11,10 +11,10 @@ CONFIG_FILE="installation_config.sh"
 MODE="${1}"
 DISK="${2}"
 
+pushd "${TEMP_DIR}" || exit 1
+
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
-
-pushd "${TEMP_DIR}" || exit 1
 
 # Sourcing log functions
 if ! source "${FUNCTIONS}"; then
