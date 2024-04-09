@@ -11,3 +11,6 @@ polkit,repo,Manages user policies
 networkmanager,repo,Network Manager
 arch-install-scripts,repo,Installing scripts
 git,repo,SCV Software
+unzip,repo,Archive tool
+python-pip,repo,Management tool for python libraries
+bash-completion,repo,Bash completion
