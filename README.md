@@ -12,7 +12,7 @@ Several installation types are possible:
 Minimum dependencies are necessary in order to install
 the system.
 
-Neovim and tmux are to be configured automatically.
+Neovim and tmux are to be configured automatically on both **i3** and **gnome**.
 For the moment the user cannot opt out of this.
 Only for server installations where those won't matter.
 
