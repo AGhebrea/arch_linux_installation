@@ -31,6 +31,7 @@ Only for server installations where those won't matter.
     * **Linux**:
         - *Graphical*: [Balena Etcher](https://etcher.balena.io/)
         - *Command Line*:
+
         Wipe disk:
         ```shell
         wipefs --all /dev/<disk>
