@@ -224,7 +224,7 @@ function enter_environment() {
     exec 1>&3 2>&4
 
     # shellcheck disable=SC2016
-    exit_on_error arch-chroot /mnt /bin/bash "${TEMP_DIR}/stage2.sh" "${MODE}" "${DISK}"
+    exit_on_error arch-chroot /mnt /bin/bash "${TEMP_DIR}/stage2_installation.sh" "${MODE}" "${DISK}"
 }
 
 # MAIN
