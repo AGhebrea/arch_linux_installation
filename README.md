@@ -12,10 +12,15 @@ Several installation types are possible:
 Minimum dependencies are necessary in order to install
 the system.
 
+Neovim and tmux are to be configured automatically.
+For the moment the user cannot opt out of this.
+Only for server installations where those won't matter.
+
 # Table of Contents
 
 1. [Getting Started](#getting-started)
 2. [Usage](#usage)
+3. [Wishlist](#wishlist)
 
 ## Getting Started
 
@@ -79,3 +84,11 @@ cd arch_linux_installation
 
 > [!IMPORTANT]
 > The installation is interactive. Please pay attention to prompts and answers.
+
+
+## Wishlist
+
+1. Allow user to opt in/out of applying configuration
+2. Allow user to delete and add any desired package:
+    - checks will be done on core pacakges
+    - configuration will be applied dynamically
