@@ -5,9 +5,9 @@ TEMP_DIR="$(dirname "${0}")"
 SCRIPT_NAME="$(basename "${0}")"
 LOG_FILE="${SCRIPT_NAME}.log"
 PASSED_ENV_VARS=".${SCRIPT_NAME}.env"
-FUNCTIONS="functions/functions.sh"
-CONFIG_FILE="config/installation_config.conf"
-LIGHTDM_CONF="config/99-switch-monitor.conf"
+FUNCTIONS="functions.sh"
+CONFIG_FILE="installation_config.conf"
+LIGHTDM_CONF="99-switch-monitor.conf"
 
 MODE="${1}"
 DISK="${2}"
@@ -27,10 +27,13 @@ fi
 popd || exit 1
 
 # Sourcing configuration file
+# you need to be in config directory for this sourcing to work
+pushd config || exit 1
 if ! source "${CONFIG_FILE}"; then
     echo "Error! Could not source ${CONFIG_FILE}"
     exit 1
 fi
+popd || exit 1
 
 DE_PACKAGES="packages/${DE}-packages.csv"
 
@@ -249,10 +252,11 @@ function configure_additional_packages() {
 
         mkdir -p /etc/lightdm/lightdm.conf.d
 
-        # ${LIGHTDM_CONF#*/} : deletes the shortest match of */ from LIGHTDM_CONF
-        # for us, the variable will be 99-switch-monitor.conf
-        sed "s|user_account|${NAME}|g" "${LIGHTDM_CONF}" > "/etc/lightdm/lightdm.conf.d/${LIGHTDM_CONF#*/}"
+        # you need to be in functions directory for this sourcing to work
+        pushd config || exit 1
+        sed "s|user_account|${NAME}|g" "${LIGHTDM_CONF}" > "/etc/lightdm/lightdm.conf.d/${LIGHTDM_CONF}"
         exit_on_error systemctl enable lightdm
+        popd || exit 1
 
         log_ok "DONE"
     elif [[ "${DE}" = "gnome" ]]; then
