@@ -6,19 +6,26 @@ bluez-utils,repo,Bluetooth tools
 dex,repo,Manage desktop entries
 dmenu,repo,Application Launcher
 dunst,repo,Notification system
+fd,repo,Tool used in neovim
 firefox,repo,Browser
 i3,repo,i3 desktop environment
 libreoffice-still,repo,Office suite
 lightdm-gtk-greeter,repo,Login manager greeter
 lightdm,repo,Login manager
+neovim,repo,Terminal text editor
 network-manager-applet,repo,Network Manager applet
+npm,repo,NodeJS used in neovim
 pa-applet-git,AUR,PulseAudio Applet
 pamixer,repo,Terminal based audio control
 pavucontrol,repo,Graphical interface for audio control
 picom,repo,Server for managing graphics
 pulseaudio,repo,Audio server
+python-neovim,repo,Tool used in neovim
+python-pip,repo,Management tool for python libraries
+ripgrep,repo,Tool used in neovim
 sof-firmware,repo,Firmware for audio chips
 thunar,repo,Lightweight File Manager
+tmux,repo,Multiplexer program
 ttf-jetbrains-mono-nerd,repo,Nerd font
 ttf-jetbrains-mono,repo,Font
 vlc,repo,Media Player

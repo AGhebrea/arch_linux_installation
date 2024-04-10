@@ -245,7 +245,7 @@ function main() {
     log_info "Take out the USB stick after rebooting is finished"
     log_info "Or opt to boot from the hard disk"
     log_info "Rebooting"
-    sleep 3
+    sleep 5
     reboot
 }
 
