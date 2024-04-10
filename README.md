@@ -12,6 +12,11 @@ Several installation types are possible:
 Minimum dependencies are necessary in order to install
 the system.
 
+# Table of Contents
+
+1. [Getting Started](#getting-started)
+2. [Usage](#usage)
+
 ## Getting Started
 
 1. Download the latest [Arch Linux Iso](https://archlinux.org/download/)
@@ -49,13 +54,13 @@ pacman -Sy git
 3. Clone repository:
 
 ```shell
-git clone https://github.com/arghpy/arch_generic_installation
+git clone https://github.com/arghpy/arch_linux_installation
 ```
 
 4. Go into repository:
 
 ```shell
-cd arch_generic_installation
+cd arch_linux_installation
 ```
 
 5. Configure [installation_config.conf](config/installation_config.conf)
@@ -63,13 +68,13 @@ cd arch_generic_installation
 6. Consult the `--help` of the script:
 
 ```shell
-./stage1.sh --help
+./stage1_installation.sh --help
 ```
 
 7. Start the installation:
 
 ```shell
-./stage1.sh
+./stage1_installation.sh
 ```
 
 > [!IMPORTANT]
