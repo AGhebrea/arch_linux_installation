@@ -69,7 +69,9 @@ function configuring_pacman(){
     log_info "Configuring pacman"
 
     CORES="$(nproc)"
-    ((CORES -= 1))
+    if [ $CORES -gt 1 ]; then
+        ((CORES -= 1))
+    fi
 
     CONF_FILE="/etc/pacman.conf"
 
