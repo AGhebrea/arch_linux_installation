@@ -270,8 +270,8 @@ while [[ ! $# -eq 0 ]]; do
         -c | --clean)
             log_info "Starting cleaning"
 
-            umount --recursive /mnt
-            swapoff "${SWAP_P}"
+            umount --recursive /mnt 2>/dev/null
+            swapoff "${SWAP_P}" 2>/dev/null
             rm "${PASSED_ENV_VARS}"
 
             log_ok "DONE"
