@@ -22,12 +22,12 @@ the system.
         - *Command Line*:
         Wipe disk:
         ```shell
-        #: wipefs --all /dev/<disk>
+        wipefs --all /dev/<disk>
         ```
 
         Write iso to disk:
         ```shell
-        #: dd if=/path/to/iso of=/dev/<disk> status=progress
+        dd if=/path/to/iso of=/dev/<disk> status=progress
         ```
 3. Boot the system with bootable USB stick
 
@@ -43,19 +43,19 @@ After booting in the new system:
 2. Install `git`:
 
 ```shell
-#: pacman -Sy git
+pacman -Sy git
 ```
 
 3. Clone repository:
 
 ```shell
-#: git clone https://github.com/arghpy/arch_generic_installation
+git clone https://github.com/arghpy/arch_generic_installation
 ```
 
 4. Go into repository:
 
 ```shell
-#: cd arch_generic_installation
+cd arch_generic_installation
 ```
 
 5. Configure [installation_config.conf](config/installation_config.conf)
@@ -63,11 +63,11 @@ After booting in the new system:
 6. Consult the `--help` of the script:
 
 ```shell
-#: ./stage1.sh --help
+./stage1.sh --help
 ```
 
 7. Start the installation:
 
 ```shell
-#: ./stage1.sh
+./stage1.sh
 ```
