@@ -6,7 +6,7 @@ SCRIPT_NAME="$(basename "${0}")"
 LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
 PASSED_ENV_VARS="${CWD}/.${SCRIPT_NAME}.env"
 FUNCTIONS="${CWD}/functions/functions.sh"
-CORE_PACKAGES="${CWM}/packages/core-packages.csv"
+CORE_PACKAGES="${CWD}/packages/core-packages.csv"
 
 # Logging the entire script and also outputing to terminal
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
