@@ -31,8 +31,8 @@ the system.
         ```
 3. Boot the system with bootable USB stick
 
-> [!Note]
-> you need to disable **Secure Boot** in UEFI/BIOS settings
+> [!NOTE]
+> You need to disable **Secure Boot** in UEFI/BIOS settings
 
 ## Usage
 
@@ -71,3 +71,6 @@ cd arch_generic_installation
 ```shell
 ./stage1.sh
 ```
+
+> [!IMPORTANT]
+> The installation is interactive. Please pay attention to prompts and answers.
