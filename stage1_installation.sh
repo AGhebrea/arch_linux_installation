@@ -99,6 +99,9 @@ function disks() {
 
     log_info "Disk chosen: ${DISK}"
 
+    # Allow user to read
+    sleep 3
+
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
         printf "Select disk for installation (yes/no): "
         read -r ANSWER
