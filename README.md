@@ -56,6 +56,13 @@ After booting in the new system:
 pacman -Sy git
 ```
 
+> [!WARNING]
+> In case there are problems with signing keys:
+> - disable signature checking
+> ```shell
+> sed --rexexp-extended --in-place "s|^SigLevel.*|SigLevel = Never|g" /etc/pacman.conf
+> ```
+
 3. Clone repository:
 
 ```shell
