@@ -18,10 +18,13 @@ pushd "${TEMP_DIR}" || exit 1
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
 
 # Sourcing log functions
+# you need to be in functions directory for this sourcing to work
+pushd functions || exit 1
 if ! source "${FUNCTIONS}"; then
     echo "Error! Could not source ${FUNCTIONS}"
     exit 1
 fi
+popd || exit 1
 
 # Sourcing configuration file
 if ! source "${CONFIG_FILE}"; then

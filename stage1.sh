@@ -12,11 +12,14 @@ CORE_PACKAGES="${CWM}/packages/core-packages.csv"
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
 
 
-# Sourcing functions, which also sources log_functions.sh
+# Sourcing log functions
+# you need to be in functions directory for this sourcing to work
+pushd functions || exit 1
 if ! source "${FUNCTIONS}"; then
     echo "Error! Could not source ${FUNCTIONS}"
     exit 1
 fi
+popd || exit 1
 
 if [ -f "${PASSED_ENV_VARS}" ]; then
     source "${PASSED_ENV_VARS}"
