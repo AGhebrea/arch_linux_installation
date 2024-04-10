@@ -6,7 +6,7 @@ SCRIPT_NAME="$(basename "${0}")"
 LOG_FILE="${CWD}/${SCRIPT_NAME}.log"
 PASSED_ENV_VARS="${CWD}/.${SCRIPT_NAME}.env"
 FUNCTIONS="${CWD}/functions/functions.sh"
-CORE_PACKAGES="${CWM}/packages/core-packages.csv"
+CORE_PACKAGES="${CWD}/packages/core-packages.csv"
 
 # Logging the entire script and also outputing to terminal
 exec 3>&1 4>&2 > >(tee --append "${LOG_FILE}") 2>&1
@@ -98,6 +98,9 @@ function disks() {
     lsblk --nodeps --noheadings --exclude 7 --output NAME,SIZE
 
     log_info "Disk chosen: ${DISK}"
+
+    # Allow user to read
+    sleep 3
 
     while [[ "${ANSWER}" != 'yes' && "${ANSWER}" != 'no' ]]; do
         printf "Select disk for installation (yes/no): "
@@ -245,7 +248,7 @@ function main() {
     log_info "Take out the USB stick after rebooting is finished"
     log_info "Or opt to boot from the hard disk"
     log_info "Rebooting"
-    sleep 3
+    sleep 5
     reboot
 }
 
@@ -267,8 +270,8 @@ while [[ ! $# -eq 0 ]]; do
         -c | --clean)
             log_info "Starting cleaning"
 
-            umount --recursive /mnt
-            swapoff "${SWAP_P}"
+            umount --recursive /mnt 2>/dev/null
+            swapoff "${SWAP_P}" 2>/dev/null
             rm "${PASSED_ENV_VARS}"
 
             log_ok "DONE"

@@ -12,10 +12,16 @@ Several installation types are possible:
 Minimum dependencies are necessary in order to install
 the system.
 
+Neovim and tmux are to be configured automatically on both **i3** and **gnome**.
+For the moment the user cannot opt out of this.
+Only for server installations where those won't matter.
+
 # Table of Contents
 
 1. [Getting Started](#getting-started)
 2. [Usage](#usage)
+3. [Issues or Problems](#issues-or-problems)
+4. [Wishlist](#wishlist)
 
 ## Getting Started
 
@@ -25,6 +31,7 @@ the system.
     * **Linux**:
         - *Graphical*: [Balena Etcher](https://etcher.balena.io/)
         - *Command Line*:
+
         Wipe disk:
         ```shell
         wipefs --all /dev/<disk>
@@ -50,6 +57,13 @@ After booting in the new system:
 ```shell
 pacman -Sy git
 ```
+
+> [!WARNING]
+> In case there are problems with signing keys:
+> - disable signature checking
+> ```shell
+> sed --rexexp-extended --in-place "s|^SigLevel.*|SigLevel = Never|g" /etc/pacman.conf
+> ```
 
 3. Clone repository:
 
@@ -79,3 +93,24 @@ cd arch_linux_installation
 
 > [!IMPORTANT]
 > The installation is interactive. Please pay attention to prompts and answers.
+
+## Issues or Problems
+
+In case of failure, logs are in the form `stage{1,2}_installation.sh.log`.
+
+For viewing them in a 'coloured' way, use:
+
+```shell
+less -R <log_file>
+```
+
+Please submit errors in the form of issues. Attach the logs
+themselves or screenshots of them.
+
+
+## Wishlist
+
+1. Allow user to opt in/out of applying configuration
+2. Allow user to delete and add any desired package:
+    - checks will be done on core pacakges
+    - configuration will be applied dynamically

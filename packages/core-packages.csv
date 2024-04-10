@@ -3,21 +3,14 @@ archlinux-keyring,repo,Install keyring
 base-devel,repo,The base-devel packages
 base,repo,The base packages
 bash-completion,repo,Bash completion
-fd,repo,Tool used in neovim
 git,repo,SCV Software
 htop,repo,Modern top utility
 linux-firmware,repo,Firmware for different components
 linux,repo,Linux Kernel
-neovim,repo,Terminal text editor
 networkmanager,repo,Network Manager
-npm,repo,NodeJS used in neovim
 openssh,repo,SSH server
 polkit,repo,Manages user policies
-python-neovim,repo,Tool used in neovim
-python-pip,repo,Management tool for python libraries
-ripgrep,repo,Tool used in neovim
 sudo,repo,manages admin rights
-tmux,repo,Multiplexer program
 unzip,repo,Archive tool
 vim,repo,Powerful keyboard based editor
 wget,repo,command-line utility for downloading files from the web
