@@ -4,17 +4,18 @@
 TEMP_DIR="$(dirname "${0}")"
 SCRIPT_NAME="$(basename "${0}")"
 LOG_FILE="${SCRIPT_NAME}.log"
-PASSED_ENV_VARS=".installation_part2.env"
-FUNCTIONS="functions.sh"
-CONFIG_FILE="installation_config.sh"
+PASSED_ENV_VARS=".${SCRIPT_NAME}.env"
+FUNCTIONS="functions/functions.sh"
+CONFIG_FILE="config/installation_config.conf"
+LIGHTDM_CONF="config/99-switch-monitor.conf"
 
 MODE="${1}"
 DISK="${2}"
 
+pushd "${TEMP_DIR}" || exit 1
+
 # Logging the entire script
 exec 3>&1 4>&2 > >(tee -a "${LOG_FILE}") 2>&1
-
-pushd "${TEMP_DIR}" || exit 1
 
 # Sourcing log functions
 if ! source "${FUNCTIONS}"; then
@@ -28,8 +29,10 @@ if ! source "${CONFIG_FILE}"; then
     exit 1
 fi
 
+DE_PACKAGES="packages/${DE}-packages.csv"
+
 if [  -z "${MODE}" ] || [ -z "${DISK}" ]; then
-    log_error "Variables are not set. MODE: ${MODE}, DISK: ${DISK}"
+    log_error "Variables are not set. MODE: ${MODE}, DISK: ${DISK}" && exit 1
 fi
 
 # Initializing keys and setting pacman
@@ -47,65 +50,58 @@ function configuring_pacman(){
     log_info "Disabling for the moment signature checking"
     # Disable signature checking because it keeps failing for some unknown reason
     sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel = Never|g" "${CONF_FILE}"
-    log_ok "DONE"
-
- #    log_info "Refreshing gpg keys"
-	# exit_on_error gpg --refresh-keys
- #    log_ok "DONE"
-	#
- #    log_info "Initializing key"
-	# exit_on_error pacman-key --init
- #    log_ok "DONE"
-	#
- #    log_info "Refreshing keys"
-	# exit_on_error pacman-key --refresh-keys
- #    log_ok "DONE"
 
     log_info "Refreshing sources"
 	exit_on_error pacman --noconfirm --sync --refresh
-    log_ok "DONE"
-
- #    log_info "Installing the keyring"
-	# exit_on_error pacman --noconfirm --sync --refresh archlinux-keyring
- #    log_ok "DONE"
 
     echo PASSED_CONFIGURING_PACMAN="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Setting up time
 function set_time(){
     log_info "Setting up time"
 
-    exit_on_error ln --symbolic --force "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime && \
-        hwclock --systohc
-
-    log_ok "DONE"
+    if [ -n "${TIMEZONE}" ] && [ -f "/usr/share/zoneinfo/${TIMEZONE}" ]; then
+        exit_on_error ln --symbolic --force "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime && \
+            hwclock --systohc
+    else
+        exit_on_error ln --symbolic --force "/usr/share/zoneinfo/Europe/Bucharest" /etc/localtime && \
+            hwclock --systohc
+    fi
 
     echo PASSED_SET_TIME="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Changing the language to english
 function change_language(){
     log_info "Setting up language"
 
+    if [ -z "${LANG}" ]; then
+        LANG="en_US.UTF-8"
+    fi
+
     sed --in-place "/${LANG}/s|^#||" /etc/locale.gen
     echo "LANG=${LANG}" > /etc/locale.conf
     locale-gen
 
-    log_ok "DONE"
-
     echo PASSED_CHANGE_LANGUAGE="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Setting the hostname
 function set_hostname(){
-    log_info "Setting hostname to archlinux"
+    log_info "Setting hostname to ${HOSTNAME}"
 
-	echo "${HOSTNAME}" > /etc/hostname
+    if [ -z "${HOSTNAME}" ]; then
+        HOSTNAME="archlinux"
+    fi
 
-    log_ok "DONE"
+    echo "${HOSTNAME}" > /etc/hostname
 
     echo PASSED_SET_HOSTNAME="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Change root password
@@ -116,14 +112,13 @@ function change_root_password() {
         sleep 1
     done
 
-    log_ok "DONE"
-
     echo PASSED_CHANGE_ROOT_PASSWORD="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Set user and password
 function set_user() {
-    log_info "Setting user account"
+    log_info "Setting administrator account"
 
     NAME=""
 
@@ -143,14 +138,14 @@ function set_user() {
         sleep 1
     done
 
-    log_ok "DONE"
-
     echo PASSED_SET_USER="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Installing grub and creating configuration
 function grub_configuration() {
     log_info "Installing and configuring grub"
+
 	if [[ "${MODE}" = "UEFI" ]]; then
         exit_on_error pacman --noconfirm --sync grub efibootmgr && \
             grub-install --target=x86_64-efi --efi-directory=/boot && \
@@ -160,29 +155,29 @@ function grub_configuration() {
             grub-install /dev/"${DISK}" && \
             grub-mkconfig --output=/boot/grub/grub.cfg
 	else
-		log_error "An error occured at grub step. Exiting..."
+		log_error "An error occured at grub step. Exiting"
 	fi
 
-    log_ok "DONE"
-
     echo PASSED_GRUB_CONFIGURATION="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 # Enabling services
 function enable_services(){
+    log_info "Enabling NetworkManager and sshd"
 
-    log_info "Enabling NetworkManager, earlyoom and sshd"
     exit_on_error systemctl enable NetworkManager && \
         systemctl enable sshd
-    log_ok "DONE"
 
     echo PASSED_ENABLE_SERVICES="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 #Install yay: script taken from Luke Smith
 function yay_install() {
     log_info "Installing yay - AUR package manager"
 
+    log_info "Cloning yay repository"
 	sudo -u "${NAME}" mkdir -p "/home/${NAME}/.local/yay"
 	exit_on_error sudo -u "${NAME}" git -C "/home/${NAME}/.local" clone --depth 1 --single-branch \
 		--no-tags -q "https://aur.archlinux.org/yay.git" "/home/${NAME}/.local/yay" ||
@@ -192,32 +187,36 @@ function yay_install() {
             popd || exit 1
 		}
 
+    log_info "Installing yay"
     pushd "/home/${NAME}/.local/yay" || exit 1
 	exit_on_error sudo -u "${NAME}" makepkg --noconfirm -si || return 1
     popd || exit 1
 
     # shellcheck disable=2046
-	exit_on_error sudo -u "${NAME}" yay --noconfirm -S $(awk -F ',' '/AUR/ {printf "%s ", $1}' "${DE}-packages.csv")
-
-    log_ok "DONE"
+    if [[ "${DESKTOP}" = "yes" ]] && [ -n "${DE}" ] && grep --quiet 'AUR' "${DE_PACKAGES}"; then
+        log_info "Installing AUR packages"
+        exit_on_error sudo -u "${NAME}" yay --noconfirm -S $(awk -F ',' '/AUR/ {printf "%s ", $1}' "${DE_PACKAGES}")
+    fi
 
     echo PASSED_YAY_INSTALL="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 function apply_configuration() {
     log_info "Downloading and applying new configuration"
 
+    log_info "Cloning the configuration repository"
     sudo -u "${NAME}" mkdir --parents "/home/${NAME}/git_clone"
     pushd "/home/${NAME}/git_clone" || exit 1
 	exit_on_error sudo -u "${NAME}" git clone https://github.com/arghpy/dotfiles .
     popd || exit 1
 
-    log_info "Copying in home..."
+    log_info "Copying in configuration in ${NAME} home"
     sudo -u "${NAME}" cp --recursive "/home/${NAME}/git_clone/"* "/home/${NAME}/"
     sudo -u "${NAME}" cp --recursive "/home/${NAME}/git_clone/".* "/home/${NAME}/"
 
-    log_info "Removing git clone..."
-    rm -rf "/home/${NAME}/git_clone/*"
+    log_info "Removing clone repository"
+    rm -rf "/home/${NAME}/git_clone/"
     rm -rf "/home/${NAME}/.git"
 
     if [[ "${DE}" != "i3" ]]; then
@@ -225,42 +224,42 @@ function apply_configuration() {
         rm -f "/home/${NAME}/.xprofile"
     fi
 
-    log_ok "DONE"
-
     echo PASSED_APPLY_CONFIGURATION="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 function install_additional_packages() {
-
     log_info "Installing additonal packages on the new system"
 
     # shellcheck disable=SC2046
-	exit_on_error pacman --noconfirm --sync --refresh $(awk -F ',' '/repo/ {printf "%s ", $1}' "${DE}-packages.csv")
-
-    log_ok "DONE"
+	exit_on_error pacman --noconfirm --sync --refresh $(awk -F ',' '/repo/ {printf "%s ", $1}' "${DE_PACKAGES}")
 
     echo PASSED_INSTALL_ADDITONAL_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
 
 function configure_additional_packages() {
     log_info "Configuring additional packages"
 
     if [[ "${DE}" = "i3" ]]; then
-       log_info "Configuring lightdm" 
+        log_info "Configuring lightdm" 
 
-       mkdir -p /etc/lightdm/lightdm.conf.d
-       sed "s|user_account|${NAME}|g" 99-switch-monitor.conf > /etc/lightdm/lightdm.conf.d/99-switch-display.conf
-       exit_on_error systemctl enable lightdm
+        mkdir -p /etc/lightdm/lightdm.conf.d
 
-       log_ok "DONE"
+        # ${LIGHTDM_CONF#*/} : deletes the shortest match of */ from LIGHTDM_CONF
+        # for us, the variable will be 99-switch-monitor.conf
+        sed "s|user_account|${NAME}|g" "${LIGHTDM_CONF}" > "/etc/lightdm/lightdm.conf.d/${LIGHTDM_CONF#*/}"
+        exit_on_error systemctl enable lightdm
+
+        log_ok "DONE"
+    elif [[ "${DE}" = "gnome" ]]; then
+        log_info "Enabling gdm service for gnome"
+        exit_on_error systemctl enable gdm
     fi
 
-    log_ok "DONE"
-
     echo PASSED_CONFIGURE_ADDITONAL_PACKAGES="PASSED" >> "${PASSED_ENV_VARS}"
+    log_ok "DONE"
 }
-
-
 
 # MAIN
 function main(){
@@ -275,15 +274,20 @@ function main(){
     [ -z "${PASSED_ENABLE_SERVICES+x}" ] && enable_services
     [ -z "${PASSED_YAY_INSTALL+x}" ] && yay_install
     [ -z "${PASSED_APPLY_CONFIGURATION+x}" ] && apply_configuration
-    [ -z "${PASSED_INSTALL_ADDITIONAL_PACKAGES+x}" ] && install_additional_packages
-    [ -z "${PASSED_CONFIGURE_ADDITIONAL_PACKAGES+x}" ] && configure_additional_packages
+
+    if [ -n "${DESKTOP}" ] && [ "${DESKTOP}" = "yes" ] && [ -n "${DE}" ]; then
+        [ -z "${PASSED_INSTALL_ADDITIONAL_PACKAGES+x}" ] && install_additional_packages
+        [ -z "${PASSED_CONFIGURE_ADDITIONAL_PACKAGES+x}" ] && configure_additional_packages
+    fi
 
     log_ok "DONE"
     exec 1>&3 2>&4
 
     popd || exit 1
+    log_info "Removing installation scripts"
     rm -rf "${TEMP_DIR}"
 
+    log_info "Re-enabling signature checking"
     # Enable signature checking
     sed --regexp-extended --in-place "s|^SigLevel.*|SigLevel    = Required DatabaseOptional|g" "${CONF_FILE}"
 }
