@@ -1,18 +1,12 @@
-gnome,repo,Gnome desktop environment
-sof-firmware,repo,Firmware for audio chips
+alacritty,repo,Terminal emulator
 alsa-ucm-conf,repo,General configuration for audio chips
+blueman,repo,Graphical tools for bluetooth
 bluez,repo,Bluetooth Software
 bluez-utils,repo,Bluetooth tools
-blueman,repo,Graphical tools for bluetooth
-vlc,repo,Media Player
 firefox,repo,Browser
-alacritty,repo,Terminal emulator
+gnome,repo,Gnome desktop environment
 libreoffice-still,repo,Office suite
-tmux,repo,Multiplexer program
-neovim,repo,Terminal text editor
-npm,repo,NodeJS used in neovim
-ripgrep,repo,Tool used in neovim
-fd,repo,Tool used in neovim
-python-neovim,repo,Tool used in neovim
-ttf-jetbrains-mono,repo,Font
+sof-firmware,repo,Firmware for audio chips
 ttf-jetbrains-mono-nerd,repo,Nerd font
+ttf-jetbrains-mono,repo,Font
+vlc,repo,Media Player

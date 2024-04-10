@@ -1,37 +1,31 @@
+alacritty,repo,Terminal emulator
+alsa-ucm-conf,repo,General configuration for audio chips
+blueman,repo,Graphical tools for bluetooth
+bluez,repo,Bluetooth Software
+bluez-utils,repo,Bluetooth tools
+dex,repo,Manage desktop entries
+dmenu,repo,Application Launcher
+dunst,repo,Notification system
+firefox,repo,Browser
 i3,repo,i3 desktop environment
+libreoffice-still,repo,Office suite
+lightdm-gtk-greeter,repo,Login manager greeter
+lightdm,repo,Login manager
+network-manager-applet,repo,Network Manager applet
+pa-applet-git,AUR,PulseAudio Applet
+pamixer,repo,Terminal based audio control
+pavucontrol,repo,Graphical interface for audio control
+picom,repo,Server for managing graphics
+pulseaudio,repo,Audio server
+sof-firmware,repo,Firmware for audio chips
+thunar,repo,Lightweight File Manager
+ttf-jetbrains-mono-nerd,repo,Nerd font
+ttf-jetbrains-mono,repo,Font
+vlc,repo,Media Player
+xclip,repo,Clipboard
 xorg,repo,Server for graphics
 xorg-xinit,repo,Xorg initializing tool
 xorg-xinput,repo,Xorg for processing inputs
 xorg-xrandr,repo,Xorg for managaing windows
-xwallpaper,repo,Xorg for wallpapers
-xclip,repo,Clipboard
-pavucontrol,repo,Graphical interface for audio control
-pulseaudio,repo,Audio server
-pamixer,repo,Terminal based audio control
-picom,repo,Server for managing graphics
-network-manager-applet,repo,Network Manager applet
 xss-lock,repo,Xorg locking
-dex,repo,Manage desktop entries
-lightdm,repo,Login manager
-lightdm-gtk-greeter,repo,Login manager greeter
-ttf-jetbrains-mono,repo,Font
-ttf-jetbrains-mono-nerd,repo,Nerd font
-pa-applet-git,AUR,PulseAudio Applet
-dunst,repo,Notification system
-thunar,repo,Lightweight File Manager
-dmenu,repo,Application Launcher
-sof-firmware,repo,Firmware for audio chips
-alsa-ucm-conf,repo,General configuration for audio chips
-bluez,repo,Bluetooth Software
-bluez-utils,repo,Bluetooth tools
-blueman,repo,Graphical tools for bluetooth
-vlc,repo,Media Player
-firefox,repo,Browser
-alacritty,repo,Terminal emulator
-libreoffice-still,repo,Office suite
-tmux,repo,Multiplexer program
-neovim,repo,Terminal text editor
-npm,repo,NodeJS used in neovim
-ripgrep,repo,Tool used in neovim
-fd,repo,Tool used in neovim
-python-neovim,repo,Tool used in neovim
+xwallpaper,repo,Xorg for wallpapers
