@@ -20,7 +20,8 @@ Only for server installations where those won't matter.
 
 1. [Getting Started](#getting-started)
 2. [Usage](#usage)
-3. [Wishlist](#wishlist)
+3. [Issues or Problems](#issues-or-problems)
+4. [Wishlist](#wishlist)
 
 ## Getting Started
 
@@ -91,6 +92,19 @@ cd arch_linux_installation
 
 > [!IMPORTANT]
 > The installation is interactive. Please pay attention to prompts and answers.
+
+## Issues or Problems
+
+In case of failure, logs are in the form `stage{1,2}_installation.sh.log`.
+
+For viewing them in a 'coloured' way, use:
+
+```shell
+less -R <log_file>
+```
+
+Please submit errors in the form of issues. Attach the logs
+themselves or screenshots of them.
 
 
 ## Wishlist
